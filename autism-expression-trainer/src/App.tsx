@@ -9,6 +9,7 @@ export interface ChildProfile {
   age: number
   difficulty: number
   targetEmotion: string
+  theme: string
 }
 
 export interface ApiSettings {
@@ -36,31 +37,40 @@ function App() {
     name: '민수',
     age: 8,
     difficulty: 3,
-    targetEmotion: '기쁨'
+    targetEmotion: '기쁨',
+    theme: '공룡'
   })
 
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedPrompt, setGeneratedPrompt] = useState('')
-  const [editablePromptTemplate, setEditablePromptTemplate] = useState(`당신은 자폐 아동을 위한 표정 훈련 전문가입니다.
+  const [editablePromptTemplate, setEditablePromptTemplate] = useState(`Role: Childhood specialist and fairy tale writer
 
-다음 조건에 맞는 상황극 시나리오를 JSON 포맷으로 생성해주세요.
+Task: create an 'Emotional Learning Scenario' in JSON format, reflecting the child's information and preference
 
-[입력 변수]
-- 아동 이름: {name}
-- 나이: {age}세
-- 난이도: {difficulty}/5
-- 목표 감정: {emotion}
+[Input Variable from DB]
+- Name: {name}
+- Age: {age}세
+- Difficulty: {difficulty}/5
+- Target Emotion: {emotion}
+- Preferred Theme: {theme}
 
-시나리오에서 아동의 이름({name})을 자연스럽게 사용해주세요.
+[Design Guidelines]
+1. Safety: 폭력적이거나 지나치게 부정적인 묘사는 피하고, 교육적인 어조를 유지해야 한다.
+2. Personalization: 아동이 좋아하는 {theme} 요소를 이야기에 자연스럽게 녹여내야 한다.
+3. Difficulty level {difficulty}: 단순한 원인과 결과가 드러나는 사회적 상황을 묘사해야 한다.
 
-[출력 형식: JSON만 반환]
+[Few-Shot Example]
+Input: Name=민수, Age=6, Diff=1, Emotion=기쁨, Theme=자동차
+Output: {"scenario_script": "민수가 좋아하는 빨간 자동차 장난감을 선물 받았어요! 너무 신이 나서 소리를 질렀어요.", ...}
+
+[Output Format: JSON Only]
 {
   "metadata": {
     "title": "10자 이내의 시나리오 제목",
     "difficulty": 난이도 숫자,
     "category": "학교/집/놀이터 중 하나"
   },
-  "scenario_script": "4~5문장으로 구성된 상황 묘사. 아동 이름을 포함하고, 아동이 표정을 지어야 하는 결정적 순간에서 종료되어야 합니다.",
+  "scenario_script": "4~5문장으로 구성된 상황 묘사. 아동이 표정을 지어야 하는 결정적 순간에서 종료되어야 합니다.",
   "feedback_prompt": "아동이 반응하지 않을 때 줄 수 있는 힌트 1문장"
 }
 
@@ -88,6 +98,7 @@ function App() {
         .replace(/{age}/g, childProfile.age.toString())
         .replace(/{difficulty}/g, childProfile.difficulty.toString())
         .replace(/{emotion}/g, childProfile.targetEmotion)
+        .replace(/{theme}/g, childProfile.theme)
 
       setGeneratedPrompt(filledPrompt)
 

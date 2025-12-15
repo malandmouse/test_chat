@@ -140,6 +140,22 @@ export default function DatabasePanel({
               <option value="혐오">🤢 혐오</option>
             </select>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              선호 테마
+            </label>
+            <input
+              type="text"
+              value={childProfile.theme}
+              onChange={(e) => onChildProfileChange({ ...childProfile, theme: e.target.value })}
+              placeholder="예: 공룡, 자동차, 동물, 우주 등"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              아동이 좋아하는 주제를 입력하면 시나리오에 반영됩니다
+            </p>
+          </div>
         </div>
       </div>
 
