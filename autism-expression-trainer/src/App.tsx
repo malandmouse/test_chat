@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import DatabasePanel from './components/DatabasePanel'
 import ServerPanel from './components/ServerPanel'
 import AppPreviewPanel from './components/AppPreviewPanel'
@@ -41,9 +41,38 @@ function App() {
     theme: '공룡'
   })
 
+  const [promptVersion, setPromptVersion] = useState<'v1' | 'v2'>('v2')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedPrompt, setGeneratedPrompt] = useState('')
-  const [editablePromptTemplate, setEditablePromptTemplate] = useState(`Role: Childhood specialist and fairy tale writer
+
+  // v1 프롬프트 템플릿 (테마 없음)
+  const promptTemplateV1 = `Role: Childhood specialist
+
+Task: Create a situational scenario in JSON format that meets the following conditions.
+
+[입력 변수]
+- 아동 이름: {name}
+- 나이: {age}세
+- 난이도: {difficulty}/5
+- 목표 감정: {emotion}
+
+시나리오에서 아동의 이름({name})을 자연스럽게 사용해주세요.
+
+[출력 형식: JSON만 반환]
+{
+  "metadata": {
+    "title": "10자 이내의 시나리오 제목",
+    "difficulty": 난이도 숫자,
+    "category": "학교/집/놀이터 중 하나"
+  },
+  "scenario_script": "4~5문장으로 구성된 상황 묘사. 아동 이름을 포함하고, 아동이 표정을 지어야 하는 결정적 순간에서 종료되어야 합니다.",
+  "feedback_prompt": "아동이 반응하지 않을 때 줄 수 있는 힌트 1문장"
+}
+
+중요: 반드시 JSON 형식으로만 답변하세요. 다른 설명은 포함하지 마세요.`
+
+  // v2 프롬프트 템플릿 (테마 반영)
+  const promptTemplateV2 = `Role: Childhood specialist and fairy tale writer
 
 Task: create an 'Emotional Learning Scenario' in JSON format, reflecting the child's information and preference
 
@@ -74,11 +103,22 @@ Output: {"scenario_script": "민수가 좋아하는 빨간 자동차 장난감�
   "feedback_prompt": "아동이 반응하지 않을 때 줄 수 있는 힌트 1문장"
 }
 
-중요: 반드시 JSON 형식으로만 답변하세요. 다른 설명은 포함하지 마세요.`)
+중요: 반드시 JSON 형식으로만 답변하세요. 다른 설명은 포함하지 마세요.`
+
+  const [editablePromptTemplate, setEditablePromptTemplate] = useState(promptTemplateV2)
 
   const [scenarioResponse, setScenarioResponse] = useState<ScenarioResponse | null>(null)
   const [rawJsonResponse, setRawJsonResponse] = useState('')
   const [error, setError] = useState('')
+
+  // 프롬프트 버전 변경 시 템플릿 업데이트
+  useEffect(() => {
+    if (promptVersion === 'v1') {
+      setEditablePromptTemplate(promptTemplateV1)
+    } else {
+      setEditablePromptTemplate(promptTemplateV2)
+    }
+  }, [promptVersion, promptTemplateV1, promptTemplateV2])
 
   const handleGenerate = async () => {
     if (!apiSettings.apiKey) {
@@ -208,6 +248,8 @@ Output: {"scenario_script": "민수가 좋아하는 빨간 자동차 장난감�
             onChildProfileChange={setChildProfile}
             onGenerate={handleGenerate}
             isGenerating={isGenerating}
+            promptVersion={promptVersion}
+            onPromptVersionChange={setPromptVersion}
           />
 
           <ServerPanel

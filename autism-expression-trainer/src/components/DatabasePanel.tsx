@@ -8,6 +8,8 @@ interface DatabasePanelProps {
   onChildProfileChange: (profile: ChildProfile) => void
   onGenerate: () => void
   isGenerating: boolean
+  promptVersion: 'v1' | 'v2'
+  onPromptVersionChange: (version: 'v1' | 'v2') => void
 }
 
 export default function DatabasePanel({
@@ -16,7 +18,9 @@ export default function DatabasePanel({
   onApiSettingsChange,
   onChildProfileChange,
   onGenerate,
-  isGenerating
+  isGenerating,
+  promptVersion,
+  onPromptVersionChange
 }: DatabasePanelProps) {
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 h-fit">
@@ -67,6 +71,23 @@ export default function DatabasePanel({
               placeholder={apiSettings.model.startsWith('gemini') ? 'AI...' : 'sk-...'}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              프롬프트 버전
+            </label>
+            <select
+              value={promptVersion}
+              onChange={(e) => onPromptVersionChange(e.target.value as 'v1' | 'v2')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="v1">v1 (기본 프롬프트)</option>
+              <option value="v2">v2 (테마 반영 프롬프트)</option>
+            </select>
+            <p className="mt-1 text-xs text-gray-500">
+              {promptVersion === 'v1' ? '기본 시나리오 생성 (테마 미반영)' : '아동 선호 테마가 반영된 시나리오 생성'}
+            </p>
           </div>
         </div>
       </div>
