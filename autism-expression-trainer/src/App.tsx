@@ -46,9 +46,12 @@ function App() {
 다음 조건에 맞는 상황극 시나리오를 JSON 포맷으로 생성해주세요.
 
 [입력 변수]
+- 아동 이름: {name}
 - 나이: {age}세
 - 난이도: {difficulty}/5
 - 목표 감정: {emotion}
+
+시나리오에서 아동의 이름({name})을 자연스럽게 사용해주세요.
 
 [출력 형식: JSON만 반환]
 {
@@ -57,7 +60,7 @@ function App() {
     "difficulty": 난이도 숫자,
     "category": "학교/집/놀이터 중 하나"
   },
-  "scenario_script": "4~5문장으로 구성된 상황 묘사. 아동이 표정을 지어야 하는 결정적 순간에서 종료되어야 합니다.",
+  "scenario_script": "4~5문장으로 구성된 상황 묘사. 아동 이름을 포함하고, 아동이 표정을 지어야 하는 결정적 순간에서 종료되어야 합니다.",
   "feedback_prompt": "아동이 반응하지 않을 때 줄 수 있는 힌트 1문장"
 }
 
@@ -81,6 +84,7 @@ function App() {
     try {
       // 프롬프트 템플릿에 실제 값 채우기
       const filledPrompt = editablePromptTemplate
+        .replace(/{name}/g, childProfile.name)
         .replace(/{age}/g, childProfile.age.toString())
         .replace(/{difficulty}/g, childProfile.difficulty.toString())
         .replace(/{emotion}/g, childProfile.targetEmotion)
