@@ -29,12 +29,24 @@ export default function AppPreviewPanel({
   const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
   const [showParticles, setShowParticles] = useState(false)
+  const [shuffledEmojis, setShuffledEmojis] = useState<string[]>(['😊', '😢', '😠', '😲'])
 
-  // 시나리오가 변경되면 선택 초기화
+  // 배열 섞기 함수
+  const shuffleArray = (array: string[]) => {
+    const newArray = [...array]
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]]
+    }
+    return newArray
+  }
+
+  // 시나리오가 변경되면 선택 초기화 및 이모티콘 순서 랜덤화
   useEffect(() => {
     setSelectedEmotion(null)
     setFeedback(null)
     setShowParticles(false)
+    setShuffledEmojis(shuffleArray(['😊', '😢', '😠', '😲']))
   }, [scenarioResponse])
 
   const handleEmotionClick = (emoji: string) => {
@@ -169,9 +181,9 @@ export default function AppPreviewPanel({
                     어떤 표정을 지어야 할까요?
                   </p>
                   <div className="grid grid-cols-4 gap-2">
-                    {['😊', '😢', '😠', '😲'].map((emoji, idx) => (
+                    {shuffledEmojis.map((emoji, idx) => (
                       <button
-                        key={idx}
+                        key={`${emoji}-${idx}`}
                         onClick={() => handleEmotionClick(emoji)}
                         disabled={feedback !== null}
                         className={`rounded-xl p-3 text-3xl transition-all shadow-sm ${

@@ -133,11 +133,9 @@ export default function DatabasePanel({
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="기쁨">😊 기쁨</option>
+              <option value="놀람">😲 놀람</option>
               <option value="슬픔">😢 슬픔</option>
               <option value="화남">😠 화남</option>
-              <option value="놀람">😲 놀람</option>
-              <option value="두려움">😨 두려움</option>
-              <option value="혐오">🤢 혐오</option>
             </select>
           </div>
 
