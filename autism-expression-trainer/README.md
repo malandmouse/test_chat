@@ -17,7 +17,7 @@
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
-- **LLM Integration**: OpenAI API (Client-side)
+- **LLM Integration**: OpenAI API & Google Gemini API (Client-side)
 
 ## 🎨 화면 구성
 
@@ -64,18 +64,23 @@ npm run deploy
 
 ## 🔑 사용 방법
 
-1. **OpenAI API Key 입력** (좌측 패널)
-   - [OpenAI Platform](https://platform.openai.com/api-keys)에서 API Key 발급
-   - API Key 입력 필드에 붙여넣기
+1. **모델 선택 및 API Key 입력** (좌측 패널)
+   - **OpenAI 모델**: [OpenAI Platform](https://platform.openai.com/api-keys)에서 API Key 발급
+   - **Gemini 모델**: [Google AI Studio](https://aistudio.google.com/app/apikey)에서 API Key 발급
+   - 모델 선택 후 해당 API Key 입력
 
-2. **아동 프로필 설정** (좌측 패널)
+2. **지원 모델**
+   - OpenAI: GPT-4o, GPT-4o Mini, GPT-3.5 Turbo
+   - Google Gemini: Gemini 2.0 Flash, Gemini 1.5 Pro, Gemini 1.5 Flash
+
+3. **아동 프로필 설정** (좌측 패널)
    - 이름, 나이, 난이도, 목표 감정 입력
 
-3. **시나리오 생성 요청** 버튼 클릭
+4. **시나리오 생성 요청** 버튼 클릭
 
-4. **중앙 패널**에서 백엔드 로직 및 프롬프트 확인
+5. **중앙 패널**에서 백엔드 로직 및 프롬프트 확인
 
-5. **우측 패널**에서 생성된 시나리오를 앱 화면으로 미리보기
+6. **우측 패널**에서 생성된 시나리오를 앱 화면으로 미리보기
 
 ## 📝 프롬프트 템플릿
 

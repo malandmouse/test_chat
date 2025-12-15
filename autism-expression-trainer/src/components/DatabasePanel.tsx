@@ -35,19 +35,6 @@ export default function DatabasePanel({
         <div className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              OpenAI API Key
-            </label>
-            <input
-              type="password"
-              value={apiSettings.apiKey}
-              onChange={(e) => onApiSettingsChange({ ...apiSettings, apiKey: e.target.value })}
-              placeholder="sk-..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
               모델 선택
             </label>
             <select
@@ -55,10 +42,30 @@ export default function DatabasePanel({
               onChange={(e) => onApiSettingsChange({ ...apiSettings, model: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="gpt-4o">gpt-4o</option>
-              <option value="gpt-4o-mini">gpt-4o-mini</option>
-              <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+              <optgroup label="OpenAI">
+                <option value="gpt-4o">GPT-4o</option>
+                <option value="gpt-4o-mini">GPT-4o Mini</option>
+                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+              </optgroup>
+              <optgroup label="Google Gemini">
+                <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Experimental)</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+              </optgroup>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              API Key {apiSettings.model.startsWith('gemini') ? '(Google AI Studio)' : '(OpenAI)'}
+            </label>
+            <input
+              type="password"
+              value={apiSettings.apiKey}
+              onChange={(e) => onApiSettingsChange({ ...apiSettings, apiKey: e.target.value })}
+              placeholder={apiSettings.model.startsWith('gemini') ? 'AI...' : 'sk-...'}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
         </div>
       </div>
