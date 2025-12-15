@@ -71,7 +71,7 @@ npm run deploy
 
 2. **지원 모델**
    - OpenAI: GPT-4o, GPT-4o Mini, GPT-3.5 Turbo
-   - Google Gemini: Gemini 2.0 Flash, Gemini 1.5 Pro, Gemini 1.5 Flash
+   - Google Gemini: Gemini 2.5 Pro, Gemini 2.0 Flash, Gemini 1.5 Pro, Gemini 1.5 Flash
 
 3. **아동 프로필 설정** (좌측 패널)
    - 이름, 나이, 난이도, 목표 감정 입력
