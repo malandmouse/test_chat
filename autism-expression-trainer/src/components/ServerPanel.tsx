@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Server, Code, FileJson, Edit2, Save, X } from 'lucide-react'
+import { Server, Code, FileJson, Edit2, Save, X, Copy, Check } from 'lucide-react'
 import type { ChildProfile } from '../App'
 
 interface ServerPanelProps {
@@ -22,10 +22,21 @@ export default function ServerPanel({
   const [activeTab, setActiveTab] = useState<'java' | 'prompt' | 'json'>('java')
   const [isEditingPrompt, setIsEditingPrompt] = useState(false)
   const [tempPromptTemplate, setTempPromptTemplate] = useState(promptTemplate)
+  const [isCopied, setIsCopied] = useState(false)
 
   const handleEditPrompt = () => {
     setTempPromptTemplate(promptTemplate)
     setIsEditingPrompt(true)
+  }
+
+  const handleCopyJson = async () => {
+    try {
+      await navigator.clipboard.writeText(rawJsonResponse)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
   }
 
   const handleSavePrompt = () => {
@@ -212,9 +223,29 @@ public class Child {
         {activeTab === 'json' && (
           <div>
             {rawJsonResponse ? (
-              <pre className="text-sm text-green-400 font-mono leading-relaxed">
-                {rawJsonResponse}
-              </pre>
+              <>
+                <div className="flex justify-end mb-2">
+                  <button
+                    onClick={handleCopyJson}
+                    className="flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="w-3 h-3" />
+                        복사됨!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        복사하기
+                      </>
+                    )}
+                  </button>
+                </div>
+                <pre className="text-sm text-green-400 font-mono leading-relaxed">
+                  {rawJsonResponse}
+                </pre>
+              </>
             ) : isGenerating ? (
               <div className="flex items-center justify-center py-8">
                 <div className="text-center">
