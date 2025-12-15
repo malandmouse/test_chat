@@ -1,4 +1,5 @@
-import { Smartphone, Sparkles, AlertCircle, Lightbulb } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Smartphone, Sparkles, AlertCircle, Lightbulb, PartyPopper } from 'lucide-react'
 import type { ScenarioResponse } from '../App'
 
 interface AppPreviewPanelProps {
@@ -6,14 +7,52 @@ interface AppPreviewPanelProps {
   isGenerating: boolean
   hasApiKey: boolean
   error: string
+  targetEmotion: string
+}
+
+const emotionMap: Record<string, string> = {
+  '기쁨': '😊',
+  '슬픔': '😢',
+  '화남': '😠',
+  '놀람': '😲',
+  '두려움': '😨',
+  '혐오': '🤢'
 }
 
 export default function AppPreviewPanel({
   scenarioResponse,
   isGenerating,
   hasApiKey,
-  error
+  error,
+  targetEmotion
 }: AppPreviewPanelProps) {
+  const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
+  const [showParticles, setShowParticles] = useState(false)
+
+  // 시나리오가 변경되면 선택 초기화
+  useEffect(() => {
+    setSelectedEmotion(null)
+    setFeedback(null)
+    setShowParticles(false)
+  }, [scenarioResponse])
+
+  const handleEmotionClick = (emoji: string) => {
+    if (feedback) return // 이미 선택했으면 무시
+
+    setSelectedEmotion(emoji)
+
+    // 목표 감정과 비교
+    const correctEmoji = emotionMap[targetEmotion] || '😊'
+
+    if (emoji === correctEmoji) {
+      setFeedback('correct')
+      setShowParticles(true)
+      setTimeout(() => setShowParticles(false), 3000)
+    } else {
+      setFeedback('wrong')
+    }
+  }
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <div className="flex items-center gap-2 mb-6">
@@ -105,8 +144,27 @@ export default function AppPreviewPanel({
                   </p>
                 </div>
 
-                {/* 표정 선택 영역 (시뮬레이션) */}
-                <div className="bg-gradient-to-r from-pink-100 to-purple-100 rounded-2xl p-4">
+                {/* 표정 선택 영역 (인터랙티브) */}
+                <div className="bg-gradient-to-r from-pink-100 to-purple-100 rounded-2xl p-4 relative">
+                  {/* 파티클 효과 */}
+                  {showParticles && (
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
+                      {[...Array(20)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="absolute animate-float-up"
+                          style={{
+                            left: `${Math.random() * 100}%`,
+                            animationDelay: `${Math.random() * 0.5}s`,
+                            fontSize: `${20 + Math.random() * 20}px`
+                          }}
+                        >
+                          {['🎉', '✨', '🌟', '⭐', '💫'][Math.floor(Math.random() * 5)]}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <p className="text-center text-sm font-semibold text-purple-800 mb-3">
                     어떤 표정을 지어야 할까요?
                   </p>
@@ -114,13 +172,61 @@ export default function AppPreviewPanel({
                     {['😊', '😢', '😠', '😲'].map((emoji, idx) => (
                       <button
                         key={idx}
-                        className="bg-white hover:bg-purple-200 rounded-xl p-3 text-3xl transition-colors shadow-sm"
+                        onClick={() => handleEmotionClick(emoji)}
+                        disabled={feedback !== null}
+                        className={`rounded-xl p-3 text-3xl transition-all shadow-sm ${
+                          selectedEmotion === emoji
+                            ? feedback === 'correct'
+                              ? 'bg-green-300 ring-4 ring-green-400 scale-110'
+                              : 'bg-red-200 ring-4 ring-red-400'
+                            : 'bg-white hover:bg-purple-200'
+                        } ${feedback ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                       >
                         {emoji}
                       </button>
                     ))}
                   </div>
                 </div>
+
+                {/* 피드백 메시지 */}
+                {feedback === 'correct' && (
+                  <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-4 animate-bounce-in">
+                    <div className="flex items-center justify-center gap-3">
+                      <PartyPopper className="w-8 h-8 text-green-600" />
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-green-800 font-cute">
+                          정말 잘했어요! 🎉
+                        </p>
+                        <p className="text-sm text-green-700">
+                          완벽한 표정이에요!
+                        </p>
+                      </div>
+                      <PartyPopper className="w-8 h-8 text-green-600" />
+                    </div>
+                  </div>
+                )}
+
+                {feedback === 'wrong' && (
+                  <div className="bg-orange-50 border-2 border-orange-300 rounded-2xl p-4 animate-bounce-in">
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-orange-800 font-cute mb-1">
+                        다시 한번 해볼까요? 💪
+                      </p>
+                      <p className="text-sm text-orange-700">
+                        힌트를 읽어보고 다시 시도해보세요!
+                      </p>
+                      <button
+                        onClick={() => {
+                          setFeedback(null)
+                          setSelectedEmotion(null)
+                        }}
+                        className="mt-3 px-4 py-2 bg-orange-400 hover:bg-orange-500 text-white rounded-lg text-sm font-semibold transition-colors"
+                      >
+                        다시 하기
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* 피드백 힌트 */}
                 <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4 flex gap-3">

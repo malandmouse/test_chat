@@ -213,6 +213,7 @@ function App() {
             isGenerating={isGenerating}
             hasApiKey={!!apiSettings.apiKey}
             error={error}
+            targetEmotion={childProfile.targetEmotion}
           />
         </div>
       </main>
