@@ -8,8 +8,8 @@ interface DatabasePanelProps {
   onChildProfileChange: (profile: ChildProfile) => void
   onGenerate: () => void
   isGenerating: boolean
-  promptVersion: 'v1' | 'v2' | 'v3' | 'v4'
-  onPromptVersionChange: (version: 'v1' | 'v2' | 'v3' | 'v4') => void
+  promptVersion: 'v1' | 'v2' | 'v3' | 'v4' | 'v5'
+  onPromptVersionChange: (version: 'v1' | 'v2' | 'v3' | 'v4' | 'v5') => void
 }
 
 export default function DatabasePanel({
@@ -135,13 +135,14 @@ export default function DatabasePanel({
             </label>
             <select
               value={promptVersion}
-              onChange={(e) => onPromptVersionChange(e.target.value as 'v1' | 'v2' | 'v3' | 'v4')}
+              onChange={(e) => onPromptVersionChange(e.target.value as 'v1' | 'v2' | 'v3' | 'v4' | 'v5')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="v1">v1 (기본 프롬프트)</option>
               <option value="v2">v2 (테마 반영 프롬프트)</option>
               <option value="v3">v3 (상세 가이드라인 포함)</option>
               <option value="v4">v4 (ASD 전문 교육 프롬프트)</option>
+              <option value="v5">v5 (Special Interest 통합)</option>
             </select>
             <p className="mt-1 text-xs text-gray-500">
               {promptVersion === 'v1'
@@ -150,7 +151,9 @@ export default function DatabasePanel({
                 ? '아동 선호 테마가 반영된 시나리오 생성'
                 : promptVersion === 'v3'
                 ? '기쁨 감정에 대한 상세 가이드라인 및 안전 제약사항 포함'
-                : '전체 감정에 대한 난이도별 매트릭스, 언어 복잡도 가이드라인 포함'}
+                : promptVersion === 'v4'
+                ? '전체 감정에 대한 난이도별 매트릭스, 언어 복잡도 가이드라인 포함'
+                : 'Special Interest를 사회적 연결의 다리로 활용, 현실 기반 맥락화'}
             </p>
           </div>
         </div>
