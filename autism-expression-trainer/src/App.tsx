@@ -41,7 +41,7 @@ function App() {
     theme: '공룡'
   })
 
-  const [promptVersion, setPromptVersion] = useState<'v1' | 'v2'>('v2')
+  const [promptVersion, setPromptVersion] = useState<'v1' | 'v2' | 'v3'>('v3')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedPrompt, setGeneratedPrompt] = useState('')
 
@@ -105,7 +105,52 @@ Output: {"scenario_script": "민수가 좋아하는 빨간 자동차 장난감�
 
 중요: 반드시 JSON 형식으로만 답변하세요. 다른 설명은 포함하지 마세요.`
 
-  const [editablePromptTemplate, setEditablePromptTemplate] = useState(promptTemplateV2)
+  // v3 프롬프트 템플릿 (상세 가이드라인 포함)
+  const promptTemplateV3 = `Role: Childhood specialist and fairy tale writer
+
+Task: create an 'Emotional Learning Scenario' in JSON format, reflecting the child's information and preference
+
+[Input Variable from DB]
+- Name: {name}
+- Age: {age}세
+- Difficulty: {difficulty}/5
+- Target Emotion: {emotion}
+- Preferred Theme: {theme}
+
+[Design Guidelines]
+1. Safety: 폭력적이거나 지나치게 부정적인 묘사는 피하고, 교육적인 어조를 유지해야 한다.
+2. Personalization: 아동이 좋아하는 {theme} 요소를 이야기에 자연스럽게 녹여내야 한다.
+3. Difficulty level {difficulty}: 단순한 원인과 결과가 드러나는 사회적 상황을 묘사해야 한다.
+
+[Emotion Guide for 'Joy']
+- level 1-2: Sensory pleasure (Eating treats, playing toys)
+- level 3-5: Social Joy & Achievement
+DO: Sharing, helping, succeeding after effort, feeling happy for others (Vicarious Joy)
+ DON'T: Schadenfreude (laughing at others), Selfishness (rejecting friends to play alone)
+
+[Safety Constraint]
+1. Conflicts Resolution: If a conflict arises, it must be resolved positively
+2. No Anti-Social Behavior: Do not portray rejection or bullying a cause of happiness
+3. Friendship First: In 'Playground' scenarios, prioritizing friends over toys leads to greater happiness.
+
+[Few-Shot Example]
+Input: Name=민수, Age=6, Diff=1, Emotion=기쁨, Theme=자동차
+Output: {"scenario_script": "민수가 좋아하는 빨간 자동차 장난감을 선물 받았어요! 너무 신이 나서 소리를 질렀어요.", ...}
+
+[Output Format: JSON Only]
+{
+  "metadata": {
+    "title": "10자 이내의 시나리오 제목",
+    "difficulty": 난이도 숫자,
+    "category": "학교/집/놀이터 등 일상적인 장소 중 하나"
+  },
+  "scenario_script": "4~5문장으로 구성된 상황 묘사. 아동이 표정을 지어야 하는 결정적 순간에서 종료되어야 합니다.",
+  "feedback_prompt": "아동이 반응하지 않을 때 줄 수 있는 힌트 1문장"
+}
+
+중요: 반드시 JSON 형식으로만 답변하세요. 다른 설명은 포함하지 마세요.`
+
+  const [editablePromptTemplate, setEditablePromptTemplate] = useState(promptTemplateV3)
 
   const [scenarioResponse, setScenarioResponse] = useState<ScenarioResponse | null>(null)
   const [rawJsonResponse, setRawJsonResponse] = useState('')
@@ -115,10 +160,12 @@ Output: {"scenario_script": "민수가 좋아하는 빨간 자동차 장난감�
   useEffect(() => {
     if (promptVersion === 'v1') {
       setEditablePromptTemplate(promptTemplateV1)
-    } else {
+    } else if (promptVersion === 'v2') {
       setEditablePromptTemplate(promptTemplateV2)
+    } else {
+      setEditablePromptTemplate(promptTemplateV3)
     }
-  }, [promptVersion, promptTemplateV1, promptTemplateV2])
+  }, [promptVersion, promptTemplateV1, promptTemplateV2, promptTemplateV3])
 
   const handleGenerate = async () => {
     if (!apiSettings.apiKey) {

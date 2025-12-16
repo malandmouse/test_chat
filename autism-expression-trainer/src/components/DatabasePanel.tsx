@@ -8,8 +8,8 @@ interface DatabasePanelProps {
   onChildProfileChange: (profile: ChildProfile) => void
   onGenerate: () => void
   isGenerating: boolean
-  promptVersion: 'v1' | 'v2'
-  onPromptVersionChange: (version: 'v1' | 'v2') => void
+  promptVersion: 'v1' | 'v2' | 'v3'
+  onPromptVersionChange: (version: 'v1' | 'v2' | 'v3') => void
 }
 
 export default function DatabasePanel({
@@ -79,14 +79,19 @@ export default function DatabasePanel({
             </label>
             <select
               value={promptVersion}
-              onChange={(e) => onPromptVersionChange(e.target.value as 'v1' | 'v2')}
+              onChange={(e) => onPromptVersionChange(e.target.value as 'v1' | 'v2' | 'v3')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="v1">v1 (기본 프롬프트)</option>
               <option value="v2">v2 (테마 반영 프롬프트)</option>
+              <option value="v3">v3 (상세 가이드라인 포함)</option>
             </select>
             <p className="mt-1 text-xs text-gray-500">
-              {promptVersion === 'v1' ? '기본 시나리오 생성 (테마 미반영)' : '아동 선호 테마가 반영된 시나리오 생성'}
+              {promptVersion === 'v1'
+                ? '기본 시나리오 생성 (테마 미반영)'
+                : promptVersion === 'v2'
+                ? '아동 선호 테마가 반영된 시나리오 생성'
+                : '기쁨 감정에 대한 상세 가이드라인 및 안전 제약사항 포함'}
             </p>
           </div>
         </div>
