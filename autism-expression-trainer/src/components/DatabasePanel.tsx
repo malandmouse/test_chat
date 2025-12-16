@@ -8,8 +8,8 @@ interface DatabasePanelProps {
   onChildProfileChange: (profile: ChildProfile) => void
   onGenerate: () => void
   isGenerating: boolean
-  promptVersion: 'v1' | 'v2' | 'v3'
-  onPromptVersionChange: (version: 'v1' | 'v2' | 'v3') => void
+  promptVersion: 'v1' | 'v2' | 'v3' | 'v4'
+  onPromptVersionChange: (version: 'v1' | 'v2' | 'v3' | 'v4') => void
 }
 
 export default function DatabasePanel({
@@ -75,23 +75,82 @@ export default function DatabasePanel({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
+              Temperature: {apiSettings.temperature}
+            </label>
+            <input
+              type="range"
+              value={apiSettings.temperature}
+              onChange={(e) => onApiSettingsChange({ ...apiSettings, temperature: parseFloat(e.target.value) })}
+              min="0"
+              max="2"
+              step="0.1"
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>0.0 (결정적)</span>
+              <span>2.0 (창의적)</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Top-p: {apiSettings.topP}
+            </label>
+            <input
+              type="range"
+              value={apiSettings.topP}
+              onChange={(e) => onApiSettingsChange({ ...apiSettings, topP: parseFloat(e.target.value) })}
+              min="0"
+              max="1"
+              step="0.1"
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>0.0</span>
+              <span>1.0</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Max Tokens
+            </label>
+            <input
+              type="number"
+              value={apiSettings.maxTokens}
+              onChange={(e) => onApiSettingsChange({ ...apiSettings, maxTokens: parseInt(e.target.value) || 500 })}
+              min="100"
+              max="2000"
+              step="50"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              출력 토큰 수 제한 (100-2000)
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               프롬프트 버전
             </label>
             <select
               value={promptVersion}
-              onChange={(e) => onPromptVersionChange(e.target.value as 'v1' | 'v2' | 'v3')}
+              onChange={(e) => onPromptVersionChange(e.target.value as 'v1' | 'v2' | 'v3' | 'v4')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="v1">v1 (기본 프롬프트)</option>
               <option value="v2">v2 (테마 반영 프롬프트)</option>
               <option value="v3">v3 (상세 가이드라인 포함)</option>
+              <option value="v4">v4 (ASD 전문 교육 프롬프트)</option>
             </select>
             <p className="mt-1 text-xs text-gray-500">
               {promptVersion === 'v1'
                 ? '기본 시나리오 생성 (테마 미반영)'
                 : promptVersion === 'v2'
                 ? '아동 선호 테마가 반영된 시나리오 생성'
-                : '기쁨 감정에 대한 상세 가이드라인 및 안전 제약사항 포함'}
+                : promptVersion === 'v3'
+                ? '기쁨 감정에 대한 상세 가이드라인 및 안전 제약사항 포함'
+                : '전체 감정에 대한 난이도별 매트릭스, 언어 복잡도 가이드라인 포함'}
             </p>
           </div>
         </div>
