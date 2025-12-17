@@ -11,6 +11,7 @@ interface ServerPanelProps {
   promptTemplate: string
   onPromptTemplateChange: (template: string) => void
   validationResult: ValidationResult | null
+  promptVersion: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7'
 }
 
 export default function ServerPanel({
@@ -20,15 +21,50 @@ export default function ServerPanel({
   isGenerating,
   promptTemplate,
   onPromptTemplateChange,
-  validationResult
+  validationResult,
+  promptVersion
 }: ServerPanelProps) {
   const [activeTab, setActiveTab] = useState<'java' | 'prompt' | 'json' | 'validation'>('java')
   const [isEditingPrompt, setIsEditingPrompt] = useState(false)
   const [tempPromptTemplate, setTempPromptTemplate] = useState(promptTemplate)
   const [isCopied, setIsCopied] = useState(false)
 
+  // v7 전용: 분리된 프롬프트 섹션 (모두 편집 가능)
+  const [topSection, setTopSection] = useState('')
+  const [middleSection, setMiddleSection] = useState('')
+  const [bottomSection, setBottomSection] = useState('')
+
+  // v7 프롬프트를 3개 섹션으로 분리
+  const parseV7Prompt = (template: string) => {
+    const inputVarStart = template.indexOf('[Input Variables]')
+    const instructionsStart = template.indexOf('[Instructions]')
+
+    if (inputVarStart === -1 || instructionsStart === -1) {
+      return { top: template, middle: '', bottom: '' }
+    }
+
+    const top = template.substring(0, inputVarStart)
+    const middle = template.substring(inputVarStart, instructionsStart)
+    const bottom = template.substring(instructionsStart)
+
+    return { top, middle, bottom }
+  }
+
+  const reconstructV7Prompt = (top: string, middle: string, bottom: string) => {
+    return top + middle + bottom
+  }
+
   const handleEditPrompt = () => {
     setTempPromptTemplate(promptTemplate)
+
+    // v7의 경우 프롬프트를 3개 섹션으로 분리하여 저장
+    if (promptVersion === 'v7') {
+      const { top, middle, bottom } = parseV7Prompt(promptTemplate)
+      setTopSection(top)
+      setMiddleSection(middle)
+      setBottomSection(bottom)
+    }
+
     setIsEditingPrompt(true)
   }
 
@@ -43,7 +79,13 @@ export default function ServerPanel({
   }
 
   const handleSavePrompt = () => {
-    onPromptTemplateChange(tempPromptTemplate)
+    // v7의 경우 3개 섹션을 재결합
+    if (promptVersion === 'v7') {
+      const reconstructed = reconstructV7Prompt(topSection, middleSection, bottomSection)
+      onPromptTemplateChange(reconstructed)
+    } else {
+      onPromptTemplateChange(tempPromptTemplate)
+    }
     setIsEditingPrompt(false)
   }
 
@@ -220,12 +262,47 @@ public class Child {
                     Cancel
                   </button>
                 </div>
-                <textarea
-                  value={tempPromptTemplate}
-                  onChange={(e) => setTempPromptTemplate(e.target.value)}
-                  className="w-full h-96 bg-gray-800 text-gray-100 font-mono text-sm p-3 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
-                  style={{ resize: 'vertical' }}
-                />
+                {promptVersion === 'v7' ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">상단 섹션 (Role, Task)</label>
+                      <textarea
+                        value={topSection}
+                        onChange={(e) => setTopSection(e.target.value)}
+                        className="w-full h-24 bg-gray-800 text-gray-100 font-mono text-sm p-3 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
+                        style={{ resize: 'vertical' }}
+                        placeholder="Role, Task 등을 입력하세요"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">중간 섹션 (Input Variables)</label>
+                      <textarea
+                        value={middleSection}
+                        onChange={(e) => setMiddleSection(e.target.value)}
+                        className="w-full h-32 bg-gray-800 text-gray-100 font-mono text-sm p-3 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
+                        style={{ resize: 'vertical' }}
+                        placeholder="[Input Variables] 섹션"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">하단 섹션 (Instructions, Schema)</label>
+                      <textarea
+                        value={bottomSection}
+                        onChange={(e) => setBottomSection(e.target.value)}
+                        className="w-full h-40 bg-gray-800 text-gray-100 font-mono text-sm p-3 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
+                        style={{ resize: 'vertical' }}
+                        placeholder="[Instructions], [Output JSON Schema] 등을 입력하세요"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <textarea
+                    value={tempPromptTemplate}
+                    onChange={(e) => setTempPromptTemplate(e.target.value)}
+                    className="w-full h-96 bg-gray-800 text-gray-100 font-mono text-sm p-3 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
+                    style={{ resize: 'vertical' }}
+                  />
+                )}
               </>
             )}
             {!generatedPrompt && !isGenerating && (

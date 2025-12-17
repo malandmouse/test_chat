@@ -1240,6 +1240,7 @@ CRITICAL: Respond ONLY with valid JSON.`
             promptTemplate={editablePromptTemplate}
             onPromptTemplateChange={setEditablePromptTemplate}
             validationResult={validationResult}
+            promptVersion={promptVersion}
           />
 
           <AppPreviewPanel
