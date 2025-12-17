@@ -19,6 +19,7 @@ export interface ApiSettings {
   temperature: number
   topP: number
   maxTokens: number
+  presencePenalty: number
 }
 
 export interface ScenarioResponse {
@@ -37,14 +38,23 @@ function App() {
     const saved = localStorage.getItem('apiSettings')
     if (saved) {
       try {
-        return JSON.parse(saved)
+        const parsed = JSON.parse(saved)
+        return {
+          apiKey: parsed.apiKey || '',
+          model: parsed.model || 'gpt-4o',
+          temperature: parsed.temperature ?? 0.7,
+          topP: parsed.topP ?? 1.0,
+          maxTokens: parsed.maxTokens ?? 500,
+          presencePenalty: parsed.presencePenalty ?? 0.0
+        }
       } catch {
         return {
           apiKey: '',
           model: 'gpt-4o',
           temperature: 0.7,
           topP: 1.0,
-          maxTokens: 500
+          maxTokens: 500,
+          presencePenalty: 0.0
         }
       }
     }
@@ -53,7 +63,8 @@ function App() {
       model: 'gpt-4o',
       temperature: 0.7,
       topP: 1.0,
-      maxTokens: 500
+      maxTokens: 500,
+      presencePenalty: 0.0
     }
   }
 
@@ -1218,7 +1229,8 @@ CRITICAL: Respond ONLY with valid JSON.`
             ],
             temperature: apiSettings.temperature,
             top_p: apiSettings.topP,
-            max_tokens: apiSettings.maxTokens
+            max_tokens: apiSettings.maxTokens,
+            presence_penalty: apiSettings.presencePenalty
           })
         })
 

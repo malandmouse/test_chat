@@ -131,6 +131,25 @@ export default function DatabasePanel({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
+              Presence Penalty: {apiSettings.presencePenalty}
+            </label>
+            <input
+              type="range"
+              value={apiSettings.presencePenalty}
+              onChange={(e) => onApiSettingsChange({ ...apiSettings, presencePenalty: parseFloat(e.target.value) })}
+              min="-2"
+              max="2"
+              step="0.1"
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>-2.0 (반복 허용)</span>
+              <span>2.0 (반복 억제)</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               프롬프트 버전
             </label>
             <select
