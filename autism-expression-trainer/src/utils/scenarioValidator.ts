@@ -103,34 +103,33 @@ export class ScenarioValidator {
 
     const script = data.scenario_script
 
-
-    // 4. 혼합 감정 검증
+    // 3. 혼합 감정 검증 (Emotion Clarity 삭제됨)
     const emotionEnum = this.getEmotionEnum(targetEmotion)
     const [mixedValid, mixedErrors] = this.checkMixedEmotions(script, emotionEnum)
     details.no_mixed_emotions = mixedValid
     errors.push(...mixedErrors)
 
-    // 5. 안전성 검증
+    // 4. 안전성 검증
     const [safetyValid, safetyErrors] = this.validateSafety(script)
     details.safety_check = safetyValid
     errors.push(...safetyErrors)
 
-    // 6. 현실성 검증
+    // 5. 현실성 검증
     const [realityValid, realityWarnings] = this.validateReality(script, theme)
     details.reality_check = realityValid
     warnings.push(...realityWarnings)
 
-    // 8. 주인공 검증
+    // 6. 주인공 검증 (Ending Check 삭제됨)
     const [protagonistValid, protagonistErrors] = this.validateProtagonist(script, name)
     details.protagonist_check = protagonistValid
     errors.push(...protagonistErrors)
 
-    // 9. 길이 및 복잡도 검증
+    // 7. 길이 및 복잡도 검증
     const [lengthValid, lengthWarnings] = this.validateLengthComplexity(script, difficulty)
     details.length_appropriate = lengthValid
     warnings.push(...lengthWarnings)
 
-    // 10. 난이도 일치 검증
+    // 8. 난이도 일치 검증
     const diffMatch = data.metadata.difficulty === difficulty
     details.difficulty_match = diffMatch
     if (!diffMatch) {
@@ -235,24 +234,6 @@ export class ScenarioValidator {
     }
 
     return [warnings.length === 0, warnings]
-  }
-
-
-    // 마지막 1-2 문장에 감정 표현이 있는지 확인
-    const sentences = script.split('.').filter(s => s.trim())
-    const lastSentences = sentences.slice(-2).join('. ')
-
-    const keywords = this.EMOTION_KEYWORDS[emotion]
-    const hasEmotionInEnding = (
-      keywords.explicit.some(kw => lastSentences.includes(kw)) ||
-      keywords.implicit.some(kw => lastSentences.includes(kw))
-    )
-
-    if (!hasEmotionInEnding) {
-      errors.push("시나리오 종료 부분에 감정 표현이 없습니다")
-    }
-
-    return [errors.length === 0, errors]
   }
 
   private validateProtagonist(script: string, name: string): [boolean, string[]] {
