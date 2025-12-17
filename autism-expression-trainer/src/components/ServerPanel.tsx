@@ -11,7 +11,6 @@ interface ServerPanelProps {
   promptTemplate: string
   onPromptTemplateChange: (template: string) => void
   validationResult: ValidationResult | null
-  promptVersion: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7'
 }
 
 export default function ServerPanel({
@@ -21,52 +20,15 @@ export default function ServerPanel({
   isGenerating,
   promptTemplate,
   onPromptTemplateChange,
-  validationResult,
-  promptVersion
+  validationResult
 }: ServerPanelProps) {
   const [activeTab, setActiveTab] = useState<'java' | 'prompt' | 'json' | 'validation'>('java')
   const [isEditingPrompt, setIsEditingPrompt] = useState(false)
   const [tempPromptTemplate, setTempPromptTemplate] = useState(promptTemplate)
   const [isCopied, setIsCopied] = useState(false)
 
-  // v7 전용: 분리된 프롬프트 섹션
-  const [beforeLockedSection, setBeforeLockedSection] = useState('')
-  const [lockedSection, setLockedSection] = useState('')
-  const [afterLockedSection, setAfterLockedSection] = useState('')
-
-  // v7 프롬프트의 경우 편집 가능한 부분과 잠긴 부분을 분리
-  const parseV7Prompt = (template: string) => {
-    const inputVarMatch = template.match(/(\[Input Variables\][\s\S]*?)(\[Input Validation\][\s\S]*?)(?=\n\[)/s)
-
-    if (!inputVarMatch) {
-      return { beforeLocked: template, lockedSection: '', afterLocked: '' }
-    }
-
-    const lockedStart = template.indexOf('[Input Variables]')
-    const validationEnd = template.indexOf('\n[', template.indexOf('[Input Validation]') + 1)
-
-    const beforeLocked = template.substring(0, lockedStart)
-    const lockedSection = template.substring(lockedStart, validationEnd)
-    const afterLocked = template.substring(validationEnd)
-
-    return { beforeLocked, lockedSection, afterLocked }
-  }
-
-  const reconstructV7Prompt = (beforeLocked: string, lockedSection: string, afterLocked: string) => {
-    return beforeLocked + lockedSection + afterLocked
-  }
-
   const handleEditPrompt = () => {
     setTempPromptTemplate(promptTemplate)
-
-    // v7의 경우 프롬프트를 분리하여 저장
-    if (promptVersion === 'v7') {
-      const { beforeLocked, lockedSection: locked, afterLocked } = parseV7Prompt(promptTemplate)
-      setBeforeLockedSection(beforeLocked)
-      setLockedSection(locked)
-      setAfterLockedSection(afterLocked)
-    }
-
     setIsEditingPrompt(true)
   }
 
@@ -81,13 +43,7 @@ export default function ServerPanel({
   }
 
   const handleSavePrompt = () => {
-    // v7의 경우 잠긴 섹션과 편집 가능한 섹션을 재결합
-    if (promptVersion === 'v7') {
-      const reconstructed = reconstructV7Prompt(beforeLockedSection, lockedSection, afterLockedSection)
-      onPromptTemplateChange(reconstructed)
-    } else {
-      onPromptTemplateChange(tempPromptTemplate)
-    }
+    onPromptTemplateChange(tempPromptTemplate)
     setIsEditingPrompt(false)
   }
 
@@ -264,49 +220,12 @@ public class Child {
                     Cancel
                   </button>
                 </div>
-                {promptVersion === 'v7' ? (
-                  <div className="space-y-2">
-                    <div className="bg-yellow-900/20 border border-yellow-700 rounded p-2 mb-3">
-                      <p className="text-xs text-yellow-300">
-                        🔒 [Input Variables]와 [Input Validation] 섹션은 수정할 수 없습니다
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-400 mb-1 block">편집 가능 섹션 (상단)</label>
-                      <textarea
-                        value={beforeLockedSection}
-                        onChange={(e) => setBeforeLockedSection(e.target.value)}
-                        className="w-full h-32 bg-gray-800 text-gray-100 font-mono text-sm p-3 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
-                        style={{ resize: 'vertical' }}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-500 mb-1 block">🔒 고정된 섹션 (수정 불가)</label>
-                      <textarea
-                        value={lockedSection}
-                        readOnly
-                        className="w-full h-24 bg-gray-950 text-gray-500 font-mono text-sm p-3 rounded border border-gray-800 cursor-not-allowed"
-                        style={{ resize: 'none' }}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-400 mb-1 block">편집 가능 섹션 (하단)</label>
-                      <textarea
-                        value={afterLockedSection}
-                        onChange={(e) => setAfterLockedSection(e.target.value)}
-                        className="w-full h-32 bg-gray-800 text-gray-100 font-mono text-sm p-3 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
-                        style={{ resize: 'vertical' }}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <textarea
-                    value={tempPromptTemplate}
-                    onChange={(e) => setTempPromptTemplate(e.target.value)}
-                    className="w-full h-96 bg-gray-800 text-gray-100 font-mono text-sm p-3 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
-                    style={{ resize: 'vertical' }}
-                  />
-                )}
+                <textarea
+                  value={tempPromptTemplate}
+                  onChange={(e) => setTempPromptTemplate(e.target.value)}
+                  className="w-full h-96 bg-gray-800 text-gray-100 font-mono text-sm p-3 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
+                  style={{ resize: 'vertical' }}
+                />
               </>
             )}
             {!generatedPrompt && !isGenerating && (

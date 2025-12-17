@@ -1032,45 +1032,33 @@ Before generating, verify:
 
 CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, markdown formatting, or preamble.`
 
-  // v7 프롬프트 템플릿 (자유 수정 가능하되 Input Variables와 Input Validation 섹션은 고정)
+  // v7 프롬프트 템플릿 (완전 자유 편집 가능한 빈 템플릿)
   const promptTemplateV7 = `Role: Childhood development specialist and children's story writer specialized in ASD education
 
 Task: Generate an 'Emotional Learning Scenario' in JSON format for children with autism spectrum disorders
 
 [Input Variables]
 - Name: {name}
-- Age: {age} (3-12세)
-- Difficulty: {difficulty} (1-5)
+- Age: {age}
+- Difficulty: {difficulty}
 - Target Emotion: {emotion}
-- Preferred Theme: {theme} (child's special interest)
+- Preferred Theme: {theme}
 
-[Input Validation]
-- If difficulty is out of range (1-5), default to level 3
-- If emotion or theme is missing, generate a neutral scenario
-- Age must be between 3-12; adjust language complexity accordingly
-- All themes are valid special interests - transform appropriately for ASD context
-
-[Core Design Principles]
-1. Child as Protagonist: {name} is ALWAYS the main character experiencing the emotion
-2. Special Interest Integration: {theme} appears as toys, books, activities, or topics in realistic contexts
-3. Concrete Grounding: All elements exist in real, observable daily life situations
-4. Predictable Structure: Clear cause-effect relationships with single timeline
-5. Emotional Clarity: ONE target emotion with unambiguous trigger and endpoint
-6. Safety-First: No violence, exclusion, deception, or stereotypes
-7. Positive Resolution: All conflicts resolve constructively
+[Instructions]
+(여기에 원하는 가이드라인을 작성하세요)
 
 [Output JSON Schema]
 {
   "metadata": {
-    "title": "string (한글 10자 이내, 이모지 불포함)",
-    "difficulty": number (1-5, must match input),
-    "category": "string (학교|집|놀이터|유치원|공원 중 정확히 하나 선택)"
+    "title": "string",
+    "difficulty": number,
+    "category": "string"
   },
-  "scenario_script": "string (난이도별 권장 길이 준수, {name} 주인공, {theme} 자연스럽게 통합, 명확한 감정 표현으로 종료)",
-  "feedback_prompt": "string (의문문, 25자 이내, 감정이나 표정 질문)"
+  "scenario_script": "string",
+  "feedback_prompt": "string"
 }
 
-CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, markdown formatting, or preamble.`
+CRITICAL: Respond ONLY with valid JSON.`
 
   const [editablePromptTemplate, setEditablePromptTemplate] = useState(promptTemplateV7)
 
@@ -1252,7 +1240,6 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, markdo
             promptTemplate={editablePromptTemplate}
             onPromptTemplateChange={setEditablePromptTemplate}
             validationResult={validationResult}
-            promptVersion={promptVersion}
           />
 
           <AppPreviewPanel

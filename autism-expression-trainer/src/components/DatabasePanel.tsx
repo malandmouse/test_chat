@@ -144,7 +144,7 @@ export default function DatabasePanel({
               <option value="v4">v4 (ASD 전문 교육 프롬프트)</option>
               <option value="v5">v5 (Special Interest 통합)</option>
               <option value="v6">v6 (아동 주인공 + 감정 명확성 + AU)</option>
-              <option value="v7">v7 (자유 프리셋 - Input 섹션 고정)</option>
+              <option value="v7">v7 (빈 템플릿 - 완전 자유 편집)</option>
             </select>
             <p className="mt-1 text-xs text-gray-500">
               {promptVersion === 'v1'
@@ -159,7 +159,7 @@ export default function DatabasePanel({
                 ? 'Special Interest를 사회적 연결의 다리로 활용, 현실 기반 맥락화'
                 : promptVersion === 'v6'
                 ? '아동 주인공 중심, 단일 감정 원칙, AU 표정 캡처 최적화, 시간적 단순성'
-                : '자유 프롬프트 수정 가능 (Input Variables, Input Validation 섹션은 수정 불가)'}
+                : '최소한의 구조만 제공, 모든 섹션 자유롭게 수정 가능'}
             </p>
           </div>
         </div>
