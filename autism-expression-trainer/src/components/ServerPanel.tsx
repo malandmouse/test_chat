@@ -1,0 +1,471 @@
+import { useState, useEffect } from 'react'
+import { Server, Code, FileJson, Edit2, Save, X, Copy, Check, CheckCircle2, AlertCircle, XCircle } from 'lucide-react'
+import type { ChildProfile } from '../App'
+import type { ValidationResult } from '../utils/scenarioValidator'
+
+interface ServerPanelProps {
+  childProfile: ChildProfile
+  generatedPrompt: string
+  rawJsonResponse: string
+  isGenerating: boolean
+  promptTemplate: string
+  onPromptTemplateChange: (template: string) => void
+  validationResult: ValidationResult | null
+  promptVersion: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7'
+}
+
+export default function ServerPanel({
+  childProfile,
+  generatedPrompt,
+  rawJsonResponse,
+  isGenerating,
+  promptTemplate,
+  onPromptTemplateChange,
+  validationResult,
+  promptVersion
+}: ServerPanelProps) {
+  const [activeTab, setActiveTab] = useState<'java' | 'prompt' | 'json' | 'validation'>('java')
+  const [isEditingPrompt, setIsEditingPrompt] = useState(false)
+  const [tempPromptTemplate, setTempPromptTemplate] = useState(promptTemplate)
+  const [isCopied, setIsCopied] = useState(false)
+
+  // v7 전용: 분리된 프롬프트 섹션 (모두 편집 가능)
+  const [topSection, setTopSection] = useState('')
+  const [middleSection, setMiddleSection] = useState('')
+  const [bottomSection, setBottomSection] = useState('')
+
+  // v7 프롬프트를 3개 섹션으로 분리
+  const parseV7Prompt = (template: string) => {
+    const inputVarStart = template.indexOf('[Input Variables]')
+    const instructionsStart = template.indexOf('[Instructions]')
+
+    if (inputVarStart === -1 || instructionsStart === -1) {
+      return { top: template, middle: '', bottom: '' }
+    }
+
+    const top = template.substring(0, inputVarStart)
+    const middle = template.substring(inputVarStart, instructionsStart)
+    const bottom = template.substring(instructionsStart)
+
+    return { top, middle, bottom }
+  }
+
+  const reconstructV7Prompt = (top: string, middle: string, bottom: string) => {
+    return top + middle + bottom
+  }
+
+  // v7 템플릿이 변경될 때마다 섹션 업데이트
+  useEffect(() => {
+    if (promptVersion === 'v7') {
+      const { top, middle, bottom } = parseV7Prompt(promptTemplate)
+      setTopSection(top)
+      setMiddleSection(middle)
+      setBottomSection(bottom)
+    }
+    setTempPromptTemplate(promptTemplate)
+  }, [promptTemplate, promptVersion])
+
+  const handleEditPrompt = () => {
+    setIsEditingPrompt(true)
+  }
+
+  const handleCopyJson = async () => {
+    try {
+      await navigator.clipboard.writeText(rawJsonResponse)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
+  const handleSavePrompt = () => {
+    // v7의 경우 3개 섹션을 재결합
+    if (promptVersion === 'v7') {
+      const reconstructed = reconstructV7Prompt(topSection, middleSection, bottomSection)
+      onPromptTemplateChange(reconstructed)
+    } else {
+      onPromptTemplateChange(tempPromptTemplate)
+    }
+    setIsEditingPrompt(false)
+  }
+
+  const handleCancelEdit = () => {
+    setTempPromptTemplate(promptTemplate)
+    setIsEditingPrompt(false)
+  }
+
+  // Java 코드 - 실제 childProfile 값을 반영
+  const javaCode = `// ChildService.java
+@Service
+public class ChildService {
+
+    @Autowired
+    private ChildRepository childRepository;
+
+    @Autowired
+    private LLMClient llmClient;
+
+    /**
+     * 아동 ID로 맞춤형 시나리오 생성
+     * @param childId 아동 고유 ID
+     * @return LLM이 생성한 시나리오 JSON
+     */
+    public String generateScenario(Long childId) {
+        // 1. DB에서 아동 정보 조회
+        Child child = childRepository.findById(childId)
+            .orElseThrow(() -> new ChildNotFoundException(childId));
+
+        // 현재 선택된 아동 정보:
+        // - 이름: "${childProfile.name}"
+        // - 나이: ${childProfile.age}세
+        // - 난이도: ${childProfile.difficulty}/5
+        // - 목표 감정: ${childProfile.targetEmotion}
+
+        // 2. 프롬프트 템플릿에 값 주입
+        String prompt = PromptTemplate.SCENARIO_GEN
+            .replace("{age}", child.getAge().toString())        // ${childProfile.age}
+            .replace("{difficulty}", child.getDifficulty().toString())  // ${childProfile.difficulty}
+            .replace("{emotion}", child.getTargetEmotion());    // ${childProfile.targetEmotion}
+
+        // 3. LLM API 호출
+        String response = llmClient.call(prompt);
+
+        // 4. 응답 로깅 및 반환
+        log.info("Scenario generated for child: {}", child.getName());
+        return response;
+    }
+}
+
+// Child.java (Entity)
+@Entity
+@Table(name = "children")
+public class Child {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;           // "${childProfile.name}"
+    private Integer age;           // ${childProfile.age}
+    private Integer difficulty;    // ${childProfile.difficulty}
+    private String targetEmotion;  // "${childProfile.targetEmotion}"
+
+    // getters, setters...
+}`
+
+  return (
+    <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="flex items-center gap-2 mb-6">
+        <Server className="w-6 h-6 text-green-600" />
+        <h2 className="text-xl font-bold text-gray-800">Server Side (Spring Boot & LLM)</h2>
+      </div>
+
+      {/* 탭 네비게이션 */}
+      <div className="flex border-b border-gray-200 mb-4">
+        <button
+          onClick={() => setActiveTab('java')}
+          className={`px-4 py-2 font-medium text-sm transition-colors ${
+            activeTab === 'java'
+              ? 'border-b-2 border-green-600 text-green-600'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Code className="w-4 h-4" />
+            Java Logic
+          </div>
+        </button>
+        <button
+          onClick={() => setActiveTab('prompt')}
+          className={`px-4 py-2 font-medium text-sm transition-colors ${
+            activeTab === 'prompt'
+              ? 'border-b-2 border-green-600 text-green-600'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Edit2 className="w-4 h-4" />
+            Actual Prompt
+          </div>
+        </button>
+        <button
+          onClick={() => setActiveTab('json')}
+          className={`px-4 py-2 font-medium text-sm transition-colors ${
+            activeTab === 'json'
+              ? 'border-b-2 border-green-600 text-green-600'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <FileJson className="w-4 h-4" />
+            Raw JSON
+          </div>
+        </button>
+        <button
+          onClick={() => setActiveTab('validation')}
+          className={`px-4 py-2 font-medium text-sm transition-colors ${
+            activeTab === 'validation'
+              ? 'border-b-2 border-green-600 text-green-600'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4" />
+            Validation
+          </div>
+        </button>
+      </div>
+
+      {/* 탭 컨텐츠 */}
+      <div className="bg-gray-900 rounded-lg p-4 overflow-auto" style={{ maxHeight: '600px' }}>
+        {activeTab === 'java' && (
+          <div>
+            <pre className="text-sm text-gray-100 font-mono leading-relaxed overflow-x-auto">
+              <code>{javaCode}</code>
+            </pre>
+          </div>
+        )}
+
+        {activeTab === 'prompt' && (
+          <div>
+            {!isEditingPrompt ? (
+              <>
+                <div className="flex justify-end mb-2">
+                  <button
+                    onClick={handleEditPrompt}
+                    className="flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                    Edit
+                  </button>
+                </div>
+                <pre className="text-sm text-gray-100 font-mono leading-relaxed whitespace-pre-wrap">
+                  {generatedPrompt || promptTemplate.replace(/{age}/g, childProfile.age.toString())
+                    .replace(/{difficulty}/g, childProfile.difficulty.toString())
+                    .replace(/{emotion}/g, childProfile.targetEmotion)}
+                </pre>
+              </>
+            ) : (
+              <>
+                <div className="flex justify-end gap-2 mb-2">
+                  <button
+                    onClick={handleSavePrompt}
+                    className="flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors"
+                  >
+                    <Save className="w-3 h-3" />
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="flex items-center gap-1 px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                    Cancel
+                  </button>
+                </div>
+                {promptVersion === 'v7' ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">상단 섹션 (Role, Task)</label>
+                      <textarea
+                        value={topSection}
+                        onChange={(e) => setTopSection(e.target.value)}
+                        className="w-full h-24 bg-gray-800 text-gray-100 font-mono text-sm p-3 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
+                        style={{ resize: 'vertical' }}
+                        placeholder="Role, Task 등을 입력하세요"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">중간 섹션 (Input Variables)</label>
+                      <textarea
+                        value={middleSection}
+                        onChange={(e) => setMiddleSection(e.target.value)}
+                        className="w-full h-32 bg-gray-800 text-gray-100 font-mono text-sm p-3 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
+                        style={{ resize: 'vertical' }}
+                        placeholder="[Input Variables] 섹션"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">하단 섹션 (Instructions, Schema)</label>
+                      <textarea
+                        value={bottomSection}
+                        onChange={(e) => setBottomSection(e.target.value)}
+                        className="w-full h-40 bg-gray-800 text-gray-100 font-mono text-sm p-3 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
+                        style={{ resize: 'vertical' }}
+                        placeholder="[Instructions], [Output JSON Schema] 등을 입력하세요"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <textarea
+                    value={tempPromptTemplate}
+                    onChange={(e) => setTempPromptTemplate(e.target.value)}
+                    className="w-full h-96 bg-gray-800 text-gray-100 font-mono text-sm p-3 rounded border border-gray-700 focus:outline-none focus:border-blue-500"
+                    style={{ resize: 'vertical' }}
+                  />
+                )}
+              </>
+            )}
+            {!generatedPrompt && !isGenerating && (
+              <p className="mt-4 text-yellow-400 text-sm">
+                ⚠️ 시나리오 생성 버튼을 눌러 프롬프트를 생성하세요
+              </p>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'json' && (
+          <div>
+            {rawJsonResponse ? (
+              <>
+                <div className="flex justify-end mb-2">
+                  <button
+                    onClick={handleCopyJson}
+                    className="flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="w-3 h-3" />
+                        복사됨!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        복사하기
+                      </>
+                    )}
+                  </button>
+                </div>
+                <pre className="text-sm text-green-400 font-mono leading-relaxed">
+                  {rawJsonResponse}
+                </pre>
+              </>
+            ) : isGenerating ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <div className="w-8 h-8 border-2 border-green-400 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                  <p className="text-gray-400 text-sm">LLM 응답 대기 중...</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-yellow-400 text-sm">
+                ⚠️ 시나리오를 생성하면 여기에 LLM의 JSON 응답이 표시됩니다
+              </p>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'validation' && (
+          <div>
+            {validationResult ? (
+              <div className="space-y-4">
+                {/* Validation Score and Status */}
+                <div className="flex items-center justify-between mb-4 p-4 bg-gray-800 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {validationResult.isValid ? (
+                      <CheckCircle2 className="w-6 h-6 text-green-400" />
+                    ) : (
+                      <XCircle className="w-6 h-6 text-red-400" />
+                    )}
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">
+                        {validationResult.isValid ? '검증 통과' : '검증 실패'}
+                      </h3>
+                      <p className="text-sm text-gray-400">
+                        점수: {validationResult.score}/100
+                      </p>
+                    </div>
+                  </div>
+                  <div className={`px-4 py-2 rounded-lg text-lg font-bold ${
+                    validationResult.score >= 80 ? 'bg-green-900 text-green-200' :
+                    validationResult.score >= 60 ? 'bg-yellow-900 text-yellow-200' :
+                    'bg-red-900 text-red-200'
+                  }`}>
+                    {validationResult.score}
+                  </div>
+                </div>
+
+                {/* Errors Section */}
+                {validationResult.errors.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-red-400 font-semibold flex items-center gap-2">
+                      <XCircle className="w-4 h-4" />
+                      오류 ({validationResult.errors.length})
+                    </h4>
+                    <div className="space-y-1">
+                      {validationResult.errors.map((error, idx) => (
+                        <div key={idx} className="bg-red-900/20 border border-red-700 rounded p-3">
+                          <p className="text-sm text-red-300">{error}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Warnings Section */}
+                {validationResult.warnings.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-yellow-400 font-semibold flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4" />
+                      경고 ({validationResult.warnings.length})
+                    </h4>
+                    <div className="space-y-1">
+                      {validationResult.warnings.map((warning, idx) => (
+                        <div key={idx} className="bg-yellow-900/20 border border-yellow-700 rounded p-3">
+                          <p className="text-sm text-yellow-300">{warning}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Validation Details Checklist */}
+                <div className="space-y-2">
+                  <h4 className="text-blue-400 font-semibold flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    상세 검증 항목
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2">
+                    {Object.entries(validationResult.details).map(([key, value]) => (
+                      <div key={key} className={`flex items-center gap-2 p-2 rounded ${
+                        value ? 'bg-green-900/20 border border-green-700' : 'bg-red-900/20 border border-red-700'
+                      }`}>
+                        {value ? (
+                          <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                        ) : (
+                          <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                        )}
+                        <span className={`text-sm ${value ? 'text-green-300' : 'text-red-300'}`}>
+                          {key.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : isGenerating ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <div className="w-8 h-8 border-2 border-green-400 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                  <p className="text-gray-400 text-sm">검증 대기 중...</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-yellow-400 text-sm">
+                ⚠️ 시나리오를 생성하면 여기에 검증 결과가 표시됩니다
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 서버 정보 */}
+      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+        <p className="text-xs text-green-800">
+          💡 <strong>실제 구현 시:</strong> Spring Boot의 @RestController가 이 로직을 실행하고,
+          프론트엔드는 REST API를 통해 결과를 받아옵니다.
+        </p>
+      </div>
+    </div>
+  )
+}
