@@ -31,6 +31,7 @@ export default function ServerPanel({
 
   // v7 전용: 분리된 프롬프트 섹션
   const [beforeLockedSection, setBeforeLockedSection] = useState('')
+  const [lockedSection, setLockedSection] = useState('')
   const [afterLockedSection, setAfterLockedSection] = useState('')
 
   // v7 프롬프트의 경우 편집 가능한 부분과 잠긴 부분을 분리
@@ -60,8 +61,9 @@ export default function ServerPanel({
 
     // v7의 경우 프롬프트를 분리하여 저장
     if (promptVersion === 'v7') {
-      const { beforeLocked, afterLocked } = parseV7Prompt(promptTemplate)
+      const { beforeLocked, lockedSection: locked, afterLocked } = parseV7Prompt(promptTemplate)
       setBeforeLockedSection(beforeLocked)
+      setLockedSection(locked)
       setAfterLockedSection(afterLocked)
     }
 
@@ -81,7 +83,6 @@ export default function ServerPanel({
   const handleSavePrompt = () => {
     // v7의 경우 잠긴 섹션과 편집 가능한 섹션을 재결합
     if (promptVersion === 'v7') {
-      const { lockedSection } = parseV7Prompt(promptTemplate)
       const reconstructed = reconstructV7Prompt(beforeLockedSection, lockedSection, afterLockedSection)
       onPromptTemplateChange(reconstructed)
     } else {
@@ -282,7 +283,7 @@ public class Child {
                     <div>
                       <label className="text-xs text-gray-500 mb-1 block">🔒 고정된 섹션 (수정 불가)</label>
                       <textarea
-                        value={parseV7Prompt(promptTemplate).lockedSection}
+                        value={lockedSection}
                         readOnly
                         className="w-full h-24 bg-gray-950 text-gray-500 font-mono text-sm p-3 rounded border border-gray-800 cursor-not-allowed"
                         style={{ resize: 'none' }}
