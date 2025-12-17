@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import DatabasePanel from './components/DatabasePanel'
 import ServerPanel from './components/ServerPanel'
 import AppPreviewPanel from './components/AppPreviewPanel'
+import { ScenarioValidator, type ValidationResult } from './utils/scenarioValidator'
 import './App.css'
 
 export interface ChildProfile {
@@ -653,9 +654,8 @@ Task: Generate an 'Emotional Learning Scenario' in JSON format for children with
 3. Concrete Grounding: All elements exist in real, observable daily life situations
 4. Predictable Structure: Clear cause-effect relationships with single timeline
 5. Emotional Clarity: ONE target emotion with unambiguous trigger and endpoint
-6. AU Visibility: Scenarios enable clear facial expression display
-7. Safety-First: No violence, exclusion, deception, or stereotypes
-8. Positive Resolution: All conflicts resolve constructively
+6. Safety-First: No violence, exclusion, deception, or stereotypes
+7. Positive Resolution: All conflicts resolve constructively
 
 [Theme Integration Strategy]
 
@@ -872,27 +872,6 @@ ALWAYS use:
 ✓ Immediate cause-effect
 ✓ Present-focused narration
 
-[AU Visibility Guidelines]
-
-Scenarios must enable clear facial expression capture:
-
-ALWAYS include face-forward situations:
-- "~를 보며", "~을 바라보며", "~를 쳐다보며"
-- Static or minimal body movement during emotion peak
-- Clear line of sight to interaction partner
-
-NEVER include face-obscuring actions:
-✗ "얼굴을 가렸어요", "고개를 숙였어요"
-✗ "뒤돌아섰어요", "엎드렸어요"
-✗ Rapid movements ("뛰어다니며", "돌면서")
-✗ Actions blocking face ("손으로 가리고")
-
-Emotion Display Timing:
-- Final sentence should be when child displays target emotion
-- This is when AR system captures response
-- Child should be relatively still, facing forward
-- Duration: Action taking 2-3 seconds minimum
-
 [Language Complexity Guidelines]
 
 Difficulty 1-2:
@@ -1046,7 +1025,6 @@ Before generating, verify:
 □ Setting is realistic daily location
 □ Single clear emotion (no mixing)
 □ Ends with observable emotional moment
-□ Face-forward situation enabled
 □ Age-appropriate language
 □ Difficulty-appropriate complexity
 □ No safety violations
@@ -1059,6 +1037,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, markdo
   const [scenarioResponse, setScenarioResponse] = useState<ScenarioResponse | null>(null)
   const [rawJsonResponse, setRawJsonResponse] = useState('')
   const [error, setError] = useState('')
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null)
 
   // 프롬프트 버전 변경 시 템플릿 업데이트
   useEffect(() => {
@@ -1087,6 +1066,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, markdo
     setError('')
     setScenarioResponse(null)
     setRawJsonResponse('')
+    setValidationResult(null)
 
     try {
       // 프롬프트 템플릿에 실제 값 채우기
@@ -1178,6 +1158,17 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, markdo
       setRawJsonResponse(JSON.stringify(parsedJson, null, 2))
       setScenarioResponse(parsedJson)
 
+      // Validation
+      const validator = new ScenarioValidator()
+      const validation = validator.validate(
+        jsonMatch[0],
+        childProfile.targetEmotion,
+        childProfile.difficulty,
+        childProfile.name,
+        childProfile.theme
+      )
+      setValidationResult(validation)
+
     } catch (err) {
       setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.')
     } finally {
@@ -1218,6 +1209,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, markdo
             isGenerating={isGenerating}
             promptTemplate={editablePromptTemplate}
             onPromptTemplateChange={setEditablePromptTemplate}
+            validationResult={validationResult}
           />
 
           <AppPreviewPanel
