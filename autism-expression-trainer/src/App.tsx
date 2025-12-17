@@ -47,7 +47,7 @@ function App() {
     theme: '공룡'
   })
 
-  const [promptVersion, setPromptVersion] = useState<'v1' | 'v2' | 'v3' | 'v4' | 'v5'>('v5')
+  const [promptVersion, setPromptVersion] = useState<'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6'>('v6')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedPrompt, setGeneratedPrompt] = useState('')
 
@@ -629,7 +629,432 @@ Before generating, verify:
 
 CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or markdown formatting.`
 
-  const [editablePromptTemplate, setEditablePromptTemplate] = useState(promptTemplateV5)
+  // v6 프롬프트 템플릿 (아동 주인공 중심 + 감정 명확성 + AU 가시성)
+  const promptTemplateV6 = `Role: Childhood development specialist and children's story writer specialized in ASD education
+
+Task: Generate an 'Emotional Learning Scenario' in JSON format for children with autism spectrum disorders, featuring the child as the protagonist in realistic daily situations
+
+[Input Variables]
+- Name: {name}
+- Age: {age} (3-12세)
+- Difficulty: {difficulty} (1-5)
+- Target Emotion: {emotion}
+- Preferred Theme: {theme} (child's special interest)
+
+[Input Validation]
+- If difficulty is out of range (1-5), default to level 3
+- If emotion or theme is missing, generate a neutral scenario
+- Age must be between 3-12; adjust language complexity accordingly
+- All themes are valid special interests - transform appropriately for ASD context
+
+[Core Design Principles]
+1. Child as Protagonist: {name} is ALWAYS the main character experiencing the emotion
+2. Special Interest Integration: {theme} appears as toys, books, activities, or topics in realistic contexts
+3. Concrete Grounding: All elements exist in real, observable daily life situations
+4. Predictable Structure: Clear cause-effect relationships with single timeline
+5. Emotional Clarity: ONE target emotion with unambiguous trigger and endpoint
+6. AU Visibility: Scenarios enable clear facial expression display
+7. Safety-First: No violence, exclusion, deception, or stereotypes
+8. Positive Resolution: All conflicts resolve constructively
+
+[Theme Integration Strategy]
+
+Philosophy: Use {theme} as motivational element while maintaining realistic social contexts.
+
+Reality-Based Integration by Difficulty:
+
+Difficulty 1-2 (Tangible Objects):
+→ Theme as physical items child can touch/see
+- Format: "{theme} 장난감/인형/그림책/카드/스티커"
+- Examples:
+  · theme=공룡 → "공룡 장난감", "공룡 그림책"
+  · theme=기차 → "기차 장난감", "기차역 그림"
+  · theme=요정 → "요정 인형", "요정 스티커"
+  · theme=로봇 → "로봇 피규어", "로봇 그림"
+- Context: Home, toy store, receiving gifts
+- Emotion source: Possession, sensory experience, simple interaction
+
+Difficulty 3-4 (Activities & Sharing):
+→ Theme-related activities with others
+- Format: "{theme} 놀이/그리기/만들기/이야기하기/보기"
+- Examples:
+  · theme=공룡 → "공룡 박물관 가기", "친구와 공룡 그림 그리기"
+  · theme=우주 → "우주 다큐 보기", "우주 퍼즐 맞추기"
+  · theme=음악 → "악기 연습하기", "노래 부르기"
+- Context: School, playground, museum, home with family
+- Emotion source: Sharing interest, collaboration, recognition
+
+Difficulty 5 (Projects & Achievement):
+→ Theme-related learning and accomplishment
+- Format: "{theme} 발표/프로젝트/대회/배우기"
+- Examples:
+  · theme=동물 → "동물 발표 준비", "동물원 관찰 기록"
+  · theme=자동차 → "자동차 모형 만들기", "자동차 원리 배우기"
+- Context: School projects, competitions, skill development
+- Emotion source: Achievement, peer/teacher recognition, mastery
+
+Reality Anchoring Rules:
+
+ALWAYS keep scenarios realistic:
+- Real places: 집, 학교, 놀이터, 유치원, 공원, 박물관, 가게
+- Real people: 친구, 선생님, 엄마, 아빠, 동생, 언니/오빠
+- Real objects: 장난감, 책, 그림, 카드, 학용품
+- Real activities: 놀기, 그리기, 만들기, 보기, 듣기, 배우기
+
+NEVER include:
+- Fantasy characters as real entities (요정이 나타났어요 ✗)
+- Magical events (마법이 일어났어요 ✗)
+- Impossible situations (하늘을 날았어요 ✗)
+- Anthropomorphic objects talking (장난감이 말했어요 ✗)
+
+Theme appears as:
+- Objects child owns/receives
+- Topics child learns/discusses
+- Activities child does
+- Media child consumes (책, 만화, 다큐)
+
+[Difficulty-Emotion Matrix]
+
+Joy (기쁨):
+- Level 1-2:
+  · Receiving theme object as gift
+  · Sensory pleasure with theme item
+  · Simple success with theme toy
+  예: "좋아하는 {theme} 장난감 받음", "{theme} 스티커 붙이기 성공"
+
+- Level 3-4:
+  · Finding peer who shares theme interest
+  · Successfully sharing theme knowledge
+  · Participating in theme activity together
+  · Praise for theme skill/knowledge
+  예: "{theme} 좋아하는 친구 만남", "{theme} 그림 칭찬받음"
+
+- Level 5:
+  · Achievement in theme project/presentation
+  · Recognition as theme expert
+  · Overcoming challenge in theme activity
+  예: "{theme} 발표 성공", "{theme} 대회 입상", "어려운 {theme} 문제 해결"
+
+Sadness (슬픔):
+- Level 1-2:
+  · Losing theme object
+  · Theme item broken/damaged
+  · Not receiving expected theme item
+  예: "{theme} 장난감 잃어버림", "{theme} 그림책 찢어짐"
+
+- Level 3-4:
+  · Theme activity cancelled/interrupted
+  · Peer doesn't share theme interest (gentle rejection)
+  · Can't participate in theme activity
+  예: "{theme} 박물관 못 감", "친구가 {theme} 관심 없음"
+
+- Level 5:
+  · Theme project/presentation difficulty
+  · Others don't value theme expertise
+  · Expected theme achievement not met
+  예: "{theme} 발표 실수", "{theme} 대회 탈락"
+
+Anger (화남):
+- Level 1-2:
+  · Theme object taken by sibling
+  · Can't access theme toy (blocked)
+  · Theme item misused by others
+  예: "동생이 {theme} 장난감 가져감", "{theme} 차례 안 지킴"
+
+- Level 3-4:
+  · Unfair treatment in theme activity
+  · Promise about theme broken
+  · Rules violated in theme play
+  예: "{theme} 놀이 약속 어김", "{theme} 순서 새치기"
+
+- Level 5:
+  · Theme expertise dismissed/ignored
+  · Unfair judgment in theme competition
+  · Misunderstood about theme knowledge
+  예: "{theme} 의견 무시됨", "{theme} 평가 불공정"
+
+Fear (두려움):
+- Level 1-2:
+  · Theme object making unexpected loud noise
+  · Unfamiliar aspect of theme
+  · New theme situation (first time)
+  예: "{theme} 소리 큼", "처음 보는 {theme}"
+
+- Level 3-4:
+  · Worried about theme performance/presentation
+  · Anxious in new theme environment
+  · Afraid of failing theme activity
+  예: "{theme} 발표 걱정", "새로운 {theme} 장소"
+
+- Level 5:
+  · Performance anxiety in theme competition
+  · Fear of social judgment about theme interest
+  · Worried about complex theme challenge
+  예: "{theme} 대회 긴장", "{theme} 관심 놀림받을까 걱정"
+
+Surprise (놀람):
+- Level 1-2:
+  · Unexpected theme gift
+  · Theme object does something new
+  · Theme item appears unexpectedly
+  예: "갑자기 {theme} 선물", "{theme} 장난감 새 기능 발견"
+
+- Level 3-4:
+  · Unexpected person shares theme interest
+  · Surprising theme discovery/information
+  · Unexpected invitation to theme activity
+  예: "선생님도 {theme} 좋아하심", "새로운 {theme} 발견"
+
+- Level 5:
+  · Unexpected theme achievement
+  · Surprising recognition for theme expertise
+  · Unexpected theme opportunity
+  예: "{theme} 대회 우승", "{theme} 전문가 만남"
+
+[Emotion Clarity Rules]
+
+Single Emotion Principle:
+Each scenario focuses ONLY on the target emotion. No mixed or conflicting emotions.
+
+NEVER mix emotions within scenario:
+✗ "떨렸지만 기뻤어요" (fear + joy)
+✗ "화났지만 웃었어요" (anger + joy)
+✗ "슬펐지만 재미있었어요" (sadness + joy)
+
+Emotion Endpoint Requirements:
+
+MUST end with clear emotional trigger:
+- Joy: Success visible, praise heard, positive surprise occurred
+- Sadness: Loss confirmed, disappointment realized, rejection clear
+- Anger: Unfairness revealed, rule broken, promise violated
+- Fear: Threat present, danger imminent, worry justified
+- Surprise: Unexpected event just occurred, revelation made
+
+MUST include emotion indicator in final sentences:
+- Explicit: "웃었어요", "울먹였어요", "화난 표정", "깜짝 놀랐어요"
+- Implicit: "박수를 쳤어요" (joy), "고개를 떨어뜨렸어요" (sadness)
+
+NEVER end with:
+✗ Ambiguous situations ("~하려고 했어요", "~할 거예요")
+✗ Process without outcome ("준비했어요" without result)
+✗ Questions ("어떻게 될까요?")
+✗ Anticipation before event ("드디어 발표 날이 되었어요")
+
+ALWAYS end with:
+✓ Completed action + clear emotional result
+✓ Others' observable reaction (말, 표정, 행동)
+✓ Child's response indicating target emotion
+
+[Temporal Simplicity Rules]
+
+Difficulty 1-2:
+→ Single moment or simple sequence (2-3 steps)
+→ Present tense focus
+→ Example: "받았어요 → 봤어요 → 웃었어요"
+
+Difficulty 3-4:
+→ Simple cause-effect (before → after)
+→ Maximum 2 time points
+→ Example: "놀이 중 → 문제 발생 → 해결/반응"
+
+Difficulty 5:
+→ Brief context + main event + result
+→ Maximum 3 time segments
+→ Example: "준비(1문장) → 실행(2문장) → 결과(2문장)"
+
+NEVER use:
+✗ Complex timelines ("다음 주", "그 동안", "며칠 동안")
+✗ Multiple flashbacks or flash-forwards
+✗ Extended durations without clear progression
+
+ALWAYS use:
+✓ Clear sequential markers ("그런데", "그때", "그러자")
+✓ Immediate cause-effect
+✓ Present-focused narration
+
+[AU Visibility Guidelines]
+
+Scenarios must enable clear facial expression capture:
+
+ALWAYS include face-forward situations:
+- "~를 보며", "~을 바라보며", "~를 쳐다보며"
+- Static or minimal body movement during emotion peak
+- Clear line of sight to interaction partner
+
+NEVER include face-obscuring actions:
+✗ "얼굴을 가렸어요", "고개를 숙였어요"
+✗ "뒤돌아섰어요", "엎드렸어요"
+✗ Rapid movements ("뛰어다니며", "돌면서")
+✗ Actions blocking face ("손으로 가리고")
+
+Emotion Display Timing:
+- Final sentence should be when child displays target emotion
+- This is when AR system captures response
+- Child should be relatively still, facing forward
+- Duration: Action taking 2-3 seconds minimum
+
+[Language Complexity Guidelines]
+
+Difficulty 1-2:
+- Sentence structure: 단문 (주어+서술어)
+- Vocabulary: 2-3음절 일상 단어
+- Grammar: 현재형 중심, "~했어요" 종결
+- Sentences: 3-4개
+- Length: 60-120자
+- Example: "민수는 공룡 장난감을 받았어요. 초록색이에요. 만졌어요. 웃었어요."
+
+Difficulty 3:
+- Sentence structure: 단순 복문 ("~해서 ~했어요")
+- Vocabulary: 기본 감정어휘 추가 (기쁘다, 속상하다)
+- Grammar: 단순 인과관계
+- Sentences: 4-5개
+- Length: 100-180자
+- Example: "민수는 친구와 공룡 그림을 그렸어요. 친구가 잘 그렸다고 했어요. 민수는 기뻤어요."
+
+Difficulty 4-5:
+- Sentence structure: 복합 인과관계, 배경 설명 가능
+- Vocabulary: 추상 감정어휘 (뿌듯하다, 억울하다, 아쉽다)
+- Grammar: 타인 감정 추론 포함
+- Sentences: 5-6개
+- Length: 150-220자
+- Example: "민수는 공룡 발표를 준비했어요. 열심히 연습했어요. 발표를 잘 마쳤어요. 선생님이 칭찬하셨어요."
+
+Age-Specific Vocabulary:
+- Age 3-5: 명사 중심, 단순 동사, 구체적 표현
+- Age 6-8: 감정 형용사, 단순 부사, 기본 접속사
+- Age 9-12: 추상 개념, 복합 문장, 다양한 표현
+
+[Mandatory Safety Rules]
+
+NEVER include:
+- Physical harm or violence (때리기, 밀기, 다치기)
+- Bullying or exclusion (따돌림, 놀림, 거부)
+- Deception as positive (거짓말로 해결)
+- Stereotypes (성별 역할, 외모 평가, 장애 편견)
+- Dangerous behaviors (위험한 행동 권장)
+- Inappropriate content (부적절한 상황/언어)
+
+ALWAYS include:
+- Safe, age-appropriate situations
+- Respectful interactions
+- Positive role models
+- Inclusive language
+- Constructive conflict resolution
+- Korean cultural context (한국 일상 상황)
+
+Special Safety for Special Interests:
+- NEVER portray theme interest negatively ("이상하다", "유치하다")
+- ALWAYS show theme as valid interest
+- Others may have different interests (diversity is positive)
+- Theme interest can be bridge to social connection
+
+[Few-Shot Examples]
+
+Example 1 - Simple Joy (Diff 1):
+Input: Name=민수, Age=5, Diff=1, Emotion=기쁨, Theme=공룡
+Output:
+{
+  "metadata": {
+    "title": "공룡 선물",
+    "difficulty": 1,
+    "category": "집"
+  },
+  "scenario_script": "민수는 공룡을 좋아해요. 엄마가 공룡 장난감을 주셨어요. 초록색 티라노예요. 민수는 공룡을 들었어요. 민수는 웃었어요.",
+  "feedback_prompt": "민수 얼굴이 어떨까요?"
+}
+
+Example 2 - Object Loss Sadness (Diff 2):
+Input: Name=지우, Age=6, Diff=2, Emotion=슬픔, Theme=인형
+Output:
+{
+  "metadata": {
+    "title": "잃어버린 인형",
+    "difficulty": 2,
+    "category": "공원"
+  },
+  "scenario_script": "지우는 토끼 인형을 좋아해요. 공원에서 그네를 탔어요. 집에 와서 가방을 열었어요. 토끼 인형이 없었어요. 지우는 슬픈 표정을 지었어요.",
+  "feedback_prompt": "지우는 어떤 표정일까요?"
+}
+
+Example 3 - Shared Interest Joy (Diff 3):
+Input: Name=서연, Age=7, Diff=3, Emotion=기쁨, Theme=그림
+Output:
+{
+  "metadata": {
+    "title": "그림 친구",
+    "difficulty": 3,
+    "category": "학교"
+  },
+  "scenario_script": "서연이는 그림 그리기를 좋아해요. 새로 온 친구 민지가 그림을 그리고 있었어요. 서연이가 '나도 그림 좋아해!'라고 말했어요. 민지가 웃으며 '같이 그릴까?'라고 했어요.",
+  "feedback_prompt": "서연이는 지금 어떨까요?"
+}
+
+Example 4 - Broken Promise Anger (Diff 4):
+Input: Name=준호, Age=8, Diff=4, Emotion=화남, Theme=로봇
+Output:
+{
+  "metadata": {
+    "title": "로봇 놀이 약속",
+    "difficulty": 4,
+    "category": "놀이터"
+  },
+  "scenario_script": "준호는 친구 민수와 로봇 놀이 약속을 했어요. 준호는 좋아하는 로봇을 모두 가져왔어요. 그런데 민수가 '나 축구할래'라고 했어요. 약속을 지키지 않았어요. 준호는 화난 표정을 지었어요.",
+  "feedback_prompt": "준호는 어떤 기분일까요?"
+}
+
+Example 5 - Achievement Joy (Diff 5):
+Input: Name=하은, Age=9, Diff=5, Emotion=기쁨, Theme=우주
+Output:
+{
+  "metadata": {
+    "title": "우주 발표 성공",
+    "difficulty": 5,
+    "category": "학교"
+  },
+  "scenario_script": "하은이는 과학 시간에 태양계 발표를 했어요. 좋아하는 우주 이야기라서 열심히 준비했어요. 발표를 마치자 친구들이 박수를 쳤어요. 선생님이 '하은이는 우주 박사구나!'라고 칭찬하셨어요. 하은이는 뿌듯해서 웃었어요.",
+  "feedback_prompt": "하은이는 어떤 표정일까요?"
+}
+
+Example 6 - Presentation Fear (Diff 4):
+Input: Name=도윤, Age=8, Diff=4, Emotion=두려움, Theme=동물
+Output:
+{
+  "metadata": {
+    "title": "발표 걱정",
+    "difficulty": 4,
+    "category": "학교"
+  },
+  "scenario_script": "도윤이는 동물 발표를 준비했어요. 오늘이 발표하는 날이에요. 친구들이 모두 도윤이를 보고 있어요. 도윤이는 떨리는 목소리로 시작했어요.",
+  "feedback_prompt": "도윤이 얼굴이 어떨까요?"
+}
+
+[Output JSON Schema]
+{
+  "metadata": {
+    "title": "string (한글 10자 이내, 이모지 불포함)",
+    "difficulty": number (1-5, must match input),
+    "category": "string (학교|집|놀이터|유치원|공원 중 정확히 하나 선택)"
+  },
+  "scenario_script": "string (난이도별 권장 길이 준수, {name} 주인공, {theme} 자연스럽게 통합, 명확한 감정 표현으로 종료)",
+  "feedback_prompt": "string (의문문, 25자 이내, 감정이나 표정 질문)"
+}
+
+[Quality Checklist - Internal Verification]
+Before generating, verify:
+□ {name} is the protagonist (not theme character)
+□ {theme} appears in realistic form (toy, book, activity, topic)
+□ Setting is realistic daily location
+□ Single clear emotion (no mixing)
+□ Ends with observable emotional moment
+□ Face-forward situation enabled
+□ Age-appropriate language
+□ Difficulty-appropriate complexity
+□ No safety violations
+□ Proper JSON format
+
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, markdown formatting, or preamble.`
+
+  const [editablePromptTemplate, setEditablePromptTemplate] = useState(promptTemplateV6)
 
   const [scenarioResponse, setScenarioResponse] = useState<ScenarioResponse | null>(null)
   const [rawJsonResponse, setRawJsonResponse] = useState('')
@@ -645,10 +1070,12 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or mar
       setEditablePromptTemplate(promptTemplateV3)
     } else if (promptVersion === 'v4') {
       setEditablePromptTemplate(promptTemplateV4)
-    } else {
+    } else if (promptVersion === 'v5') {
       setEditablePromptTemplate(promptTemplateV5)
+    } else {
+      setEditablePromptTemplate(promptTemplateV6)
     }
-  }, [promptVersion, promptTemplateV1, promptTemplateV2, promptTemplateV3, promptTemplateV4, promptTemplateV5])
+  }, [promptVersion, promptTemplateV1, promptTemplateV2, promptTemplateV3, promptTemplateV4, promptTemplateV5, promptTemplateV6])
 
   const handleGenerate = async () => {
     if (!apiSettings.apiKey) {

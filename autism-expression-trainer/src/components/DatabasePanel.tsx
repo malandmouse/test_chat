@@ -8,8 +8,8 @@ interface DatabasePanelProps {
   onChildProfileChange: (profile: ChildProfile) => void
   onGenerate: () => void
   isGenerating: boolean
-  promptVersion: 'v1' | 'v2' | 'v3' | 'v4' | 'v5'
-  onPromptVersionChange: (version: 'v1' | 'v2' | 'v3' | 'v4' | 'v5') => void
+  promptVersion: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6'
+  onPromptVersionChange: (version: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6') => void
 }
 
 export default function DatabasePanel({
@@ -135,7 +135,7 @@ export default function DatabasePanel({
             </label>
             <select
               value={promptVersion}
-              onChange={(e) => onPromptVersionChange(e.target.value as 'v1' | 'v2' | 'v3' | 'v4' | 'v5')}
+              onChange={(e) => onPromptVersionChange(e.target.value as 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="v1">v1 (기본 프롬프트)</option>
@@ -143,6 +143,7 @@ export default function DatabasePanel({
               <option value="v3">v3 (상세 가이드라인 포함)</option>
               <option value="v4">v4 (ASD 전문 교육 프롬프트)</option>
               <option value="v5">v5 (Special Interest 통합)</option>
+              <option value="v6">v6 (아동 주인공 + 감정 명확성 + AU)</option>
             </select>
             <p className="mt-1 text-xs text-gray-500">
               {promptVersion === 'v1'
@@ -153,7 +154,9 @@ export default function DatabasePanel({
                 ? '기쁨 감정에 대한 상세 가이드라인 및 안전 제약사항 포함'
                 : promptVersion === 'v4'
                 ? '전체 감정에 대한 난이도별 매트릭스, 언어 복잡도 가이드라인 포함'
-                : 'Special Interest를 사회적 연결의 다리로 활용, 현실 기반 맥락화'}
+                : promptVersion === 'v5'
+                ? 'Special Interest를 사회적 연결의 다리로 활용, 현실 기반 맥락화'
+                : '아동 주인공 중심, 단일 감정 원칙, AU 표정 캡처 최적화, 시간적 단순성'}
             </p>
           </div>
         </div>
