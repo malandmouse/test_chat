@@ -8,8 +8,8 @@ interface DatabasePanelProps {
   onChildProfileChange: (profile: ChildProfile) => void
   onGenerate: () => void
   isGenerating: boolean
-  promptVersion: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7'
-  onPromptVersionChange: (version: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7') => void
+  promptVersion: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7' | 'v8'
+  onPromptVersionChange: (version: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7' | 'v8') => void
 }
 
 export default function DatabasePanel({
@@ -154,7 +154,7 @@ export default function DatabasePanel({
             </label>
             <select
               value={promptVersion}
-              onChange={(e) => onPromptVersionChange(e.target.value as 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7')}
+              onChange={(e) => onPromptVersionChange(e.target.value as 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7' | 'v8')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="v1">v1 (기본 프롬프트)</option>
@@ -164,6 +164,7 @@ export default function DatabasePanel({
               <option value="v5">v5 (Special Interest 통합)</option>
               <option value="v6">v6 (아동 주인공 + 감정 명확성 + AU)</option>
               <option value="v7">v7 (빈 템플릿 - 완전 자유 편집)</option>
+              <option value="v8">v8 (백엔드 컨텍스트 주입 + 다양성 보장)</option>
             </select>
             <p className="mt-1 text-xs text-gray-500">
               {promptVersion === 'v1'
@@ -178,7 +179,9 @@ export default function DatabasePanel({
                 ? 'Special Interest를 사회적 연결의 다리로 활용, 현실 기반 맥락화'
                 : promptVersion === 'v6'
                 ? '아동 주인공 중심, 단일 감정 원칙, AU 표정 캡처 최적화, 시간적 단순성'
-                : '최소한의 구조만 제공, 모든 섹션 자유롭게 수정 가능'}
+                : promptVersion === 'v7'
+                ? '최소한의 구조만 제공, 모든 섹션 자유롭게 수정 가능'
+                : '백엔드 컨텍스트 자동 주입으로 시나리오 다양성 보장 (creative/observation/social/outdoors/food)'}
             </p>
           </div>
         </div>

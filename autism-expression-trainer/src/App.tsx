@@ -3,6 +3,7 @@ import DatabasePanel from './components/DatabasePanel'
 import ServerPanel from './components/ServerPanel'
 import AppPreviewPanel from './components/AppPreviewPanel'
 import { ScenarioValidator, type ValidationResult } from './utils/scenarioValidator'
+import { contextSelector } from './utils/contextPool'
 import './App.css'
 
 export interface ChildProfile {
@@ -78,9 +79,9 @@ function App() {
     theme: '공룡'
   })
 
-  const [promptVersion, setPromptVersion] = useState<'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7'>(() => {
+  const [promptVersion, setPromptVersion] = useState<'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7' | 'v8'>(() => {
     const saved = localStorage.getItem('promptVersion')
-    return (saved as 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7') || 'v7'
+    return (saved as 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7' | 'v8') || 'v8'
   })
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedPrompt, setGeneratedPrompt] = useState('')
@@ -1093,6 +1094,103 @@ Task: Generate an 'Emotional Learning Scenario' in JSON format for children with
 
 CRITICAL: Respond ONLY with valid JSON.`
 
+  // v8 프롬프트 템플릿 (백엔드 컨텍스트 주입 + 다양성 보장)
+  const promptTemplateV8 = `Role: Childhood development specialist and children's story writer specialized in ASD education
+
+Task: Generate an 'Emotional Learning Scenario' in JSON format for children with autism spectrum disorders.
+
+---
+
+[Input Variables]
+- Name: {name}
+- Age: {age}
+- Difficulty: {difficulty} (1-5)
+- Target Emotion: {emotion}
+- Preferred Theme: {theme}
+- Context Type: {context} ← ★ BACKEND INJECTION
+
+[Core Design Principles]
+1. {name} is ALWAYS the main character
+2. {theme} appears as objects, topics, activities, or media (NO fantasy/magic)
+3. Real places (home, school, park) & Real people (family, teacher)
+4. Clear cause-effect relationships
+5. ONE target emotion per scenario
+6. Safe content: No violence, bullying, deception, or stereotypes
+
+---
+
+[Difficulty-Emotion Matrix]
+
+Joy (기쁨):
+- Lvl 1-2: Receiving theme item, sensory pleasure
+- Lvl 3-4: Sharing interest, receiving praise
+- Lvl 5: Achievement, recognition
+
+Sadness (슬픔):
+- Lvl 1-2: Item lost/broken (irreversible)
+- Lvl 3-4: Activity cancelled, gentle rejection
+- Lvl 5: Project failure, effort unrecognized
+
+Anger (화남):
+- Lvl 1-2: Item taken/blocked by someone
+- Lvl 3-4: Unfair treatment, broken promise
+- Lvl 5: Ignored input, unfair rules
+
+Fear (두려움):
+- Lvl 1-2: Loud noise, unfamiliar situation
+- Lvl 3-4: Performance anxiety, new environment
+- Lvl 5: Social judgment, fear of failure
+
+Surprise (놀람):
+- Lvl 1-2: Unexpected gift/discovery
+- Lvl 3-4: Unexpected connection/invitation
+- Lvl 5: Unexpected achievement/opportunity
+
+**Key Distinction:**
+- Sadness = "It's gone forever" (resignation)
+- Anger = "Someone blocked me unfairly" (agitation)
+
+---
+
+[Language Complexity]
+- Difficulty 1-2: 3-4 short sentences (~60-120 chars)
+- Difficulty 3: 4-5 sentences (~100-180 chars)
+- Difficulty 4-5: 5-6 sentences (~150-220 chars)
+
+---
+
+[CRITICAL RULES]
+
+1. ★ CONTEXT USAGE:
+   You are given a specific context type: {context}
+
+   You MUST write a scenario that fits this context.
+
+2. ★ ENDING RULE:
+   - Build up the emotion strongly
+   - DO NOT describe final expression/action (no "smiled", "cried", "got angry")
+   - END with question: "이럴 때 {name}는(은) 어떤 표정을 지어야 할까(요)?" or "{name}의 기분은 어떨까(요)?"
+
+3. ★ OUTPUT:
+   - JSON only (no markdown, no explanation)
+   - Natural Korean for children
+   - Age-appropriate vocabulary
+
+---
+
+[Output JSON Schema]
+{
+  "metadata": {
+    "title": "string (Korean, under 10 chars)",
+    "difficulty": number,
+    "category": "string (장소: 학교|집|놀이터|공원 등)"
+  },
+  "scenario_script": "string (story text following all rules above)",
+  "feedback_prompt": "string (emotion question, under 25 chars)"
+}
+
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, or markdown formatting.`
+
   // 로컬 스토리지에서 저장된 프롬프트 불러오기
   const loadSavedPrompt = (version: string, defaultTemplate: string): string => {
     const saved = localStorage.getItem(`promptTemplate_${version}`)
@@ -1100,7 +1198,7 @@ CRITICAL: Respond ONLY with valid JSON.`
   }
 
   const [editablePromptTemplate, setEditablePromptTemplate] = useState(() => {
-    const savedVersion = localStorage.getItem('promptVersion') || 'v7'
+    const savedVersion = localStorage.getItem('promptVersion') || 'v8'
     const templates: Record<string, string> = {
       v1: promptTemplateV1,
       v2: promptTemplateV2,
@@ -1108,9 +1206,10 @@ CRITICAL: Respond ONLY with valid JSON.`
       v4: promptTemplateV4,
       v5: promptTemplateV5,
       v6: promptTemplateV6,
-      v7: promptTemplateV7
+      v7: promptTemplateV7,
+      v8: promptTemplateV8
     }
-    return loadSavedPrompt(savedVersion, templates[savedVersion] || promptTemplateV7)
+    return loadSavedPrompt(savedVersion, templates[savedVersion] || promptTemplateV8)
   })
 
   const [scenarioResponse, setScenarioResponse] = useState<ScenarioResponse | null>(null)
@@ -1127,13 +1226,14 @@ CRITICAL: Respond ONLY with valid JSON.`
       v4: promptTemplateV4,
       v5: promptTemplateV5,
       v6: promptTemplateV6,
-      v7: promptTemplateV7
+      v7: promptTemplateV7,
+      v8: promptTemplateV8
     }
 
     // 저장된 프롬프트가 있으면 로드, 없으면 기본 템플릿 사용
     const savedPrompt = loadSavedPrompt(promptVersion, templates[promptVersion])
     setEditablePromptTemplate(savedPrompt)
-  }, [promptVersion, promptTemplateV1, promptTemplateV2, promptTemplateV3, promptTemplateV4, promptTemplateV5, promptTemplateV6, promptTemplateV7])
+  }, [promptVersion, promptTemplateV1, promptTemplateV2, promptTemplateV3, promptTemplateV4, promptTemplateV5, promptTemplateV6, promptTemplateV7, promptTemplateV8])
 
   // API 설정을 로컬 스토리지에 저장
   useEffect(() => {
@@ -1163,13 +1263,17 @@ CRITICAL: Respond ONLY with valid JSON.`
     setValidationResult(null)
 
     try {
-      // 프롬프트 템플릿에 실제 값 채우기
+      // 1. 백엔드에서 컨텍스트 결정 (v8 전용 - 다양성 보장)
+      const [_contextType, contextDetail] = contextSelector.selectDiverseContext(childProfile.theme)
+
+      // 2. 프롬프트 템플릿에 실제 값 채우기
       const filledPrompt = editablePromptTemplate
         .replace(/{name}/g, childProfile.name)
         .replace(/{age}/g, childProfile.age.toString())
         .replace(/{difficulty}/g, childProfile.difficulty.toString())
         .replace(/{emotion}/g, childProfile.targetEmotion)
         .replace(/{theme}/g, childProfile.theme)
+        .replace(/{context}/g, contextDetail)
 
       setGeneratedPrompt(filledPrompt)
 

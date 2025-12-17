@@ -11,7 +11,7 @@ interface ServerPanelProps {
   promptTemplate: string
   onPromptTemplateChange: (template: string) => void
   validationResult: ValidationResult | null
-  promptVersion: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7'
+  promptVersion: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7' | 'v8'
 }
 
 export default function ServerPanel({
