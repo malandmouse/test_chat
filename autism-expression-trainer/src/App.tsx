@@ -32,13 +32,32 @@ export interface ScenarioResponse {
 }
 
 function App() {
-  const [apiSettings, setApiSettings] = useState<ApiSettings>({
-    apiKey: '',
-    model: 'gpt-4o',
-    temperature: 0.7,
-    topP: 1.0,
-    maxTokens: 500
-  })
+  // 로컬 스토리지에서 API 설정 불러오기
+  const loadApiSettings = (): ApiSettings => {
+    const saved = localStorage.getItem('apiSettings')
+    if (saved) {
+      try {
+        return JSON.parse(saved)
+      } catch {
+        return {
+          apiKey: '',
+          model: 'gpt-4o',
+          temperature: 0.7,
+          topP: 1.0,
+          maxTokens: 500
+        }
+      }
+    }
+    return {
+      apiKey: '',
+      model: 'gpt-4o',
+      temperature: 0.7,
+      topP: 1.0,
+      maxTokens: 500
+    }
+  }
+
+  const [apiSettings, setApiSettings] = useState<ApiSettings>(loadApiSettings())
 
   const [childProfile, setChildProfile] = useState<ChildProfile>({
     name: '민수',
@@ -48,7 +67,10 @@ function App() {
     theme: '공룡'
   })
 
-  const [promptVersion, setPromptVersion] = useState<'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7'>('v7')
+  const [promptVersion, setPromptVersion] = useState<'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7'>(() => {
+    const saved = localStorage.getItem('promptVersion')
+    return (saved as 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7') || 'v7'
+  })
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedPrompt, setGeneratedPrompt] = useState('')
 
@@ -1060,7 +1082,25 @@ Task: Generate an 'Emotional Learning Scenario' in JSON format for children with
 
 CRITICAL: Respond ONLY with valid JSON.`
 
-  const [editablePromptTemplate, setEditablePromptTemplate] = useState(promptTemplateV7)
+  // 로컬 스토리지에서 저장된 프롬프트 불러오기
+  const loadSavedPrompt = (version: string, defaultTemplate: string): string => {
+    const saved = localStorage.getItem(`promptTemplate_${version}`)
+    return saved || defaultTemplate
+  }
+
+  const [editablePromptTemplate, setEditablePromptTemplate] = useState(() => {
+    const savedVersion = localStorage.getItem('promptVersion') || 'v7'
+    const templates: Record<string, string> = {
+      v1: promptTemplateV1,
+      v2: promptTemplateV2,
+      v3: promptTemplateV3,
+      v4: promptTemplateV4,
+      v5: promptTemplateV5,
+      v6: promptTemplateV6,
+      v7: promptTemplateV7
+    }
+    return loadSavedPrompt(savedVersion, templates[savedVersion] || promptTemplateV7)
+  })
 
   const [scenarioResponse, setScenarioResponse] = useState<ScenarioResponse | null>(null)
   const [rawJsonResponse, setRawJsonResponse] = useState('')
@@ -1069,22 +1109,35 @@ CRITICAL: Respond ONLY with valid JSON.`
 
   // 프롬프트 버전 변경 시 템플릿 업데이트
   useEffect(() => {
-    if (promptVersion === 'v1') {
-      setEditablePromptTemplate(promptTemplateV1)
-    } else if (promptVersion === 'v2') {
-      setEditablePromptTemplate(promptTemplateV2)
-    } else if (promptVersion === 'v3') {
-      setEditablePromptTemplate(promptTemplateV3)
-    } else if (promptVersion === 'v4') {
-      setEditablePromptTemplate(promptTemplateV4)
-    } else if (promptVersion === 'v5') {
-      setEditablePromptTemplate(promptTemplateV5)
-    } else if (promptVersion === 'v6') {
-      setEditablePromptTemplate(promptTemplateV6)
-    } else {
-      setEditablePromptTemplate(promptTemplateV7)
+    const templates: Record<string, string> = {
+      v1: promptTemplateV1,
+      v2: promptTemplateV2,
+      v3: promptTemplateV3,
+      v4: promptTemplateV4,
+      v5: promptTemplateV5,
+      v6: promptTemplateV6,
+      v7: promptTemplateV7
     }
+
+    // 저장된 프롬프트가 있으면 로드, 없으면 기본 템플릿 사용
+    const savedPrompt = loadSavedPrompt(promptVersion, templates[promptVersion])
+    setEditablePromptTemplate(savedPrompt)
   }, [promptVersion, promptTemplateV1, promptTemplateV2, promptTemplateV3, promptTemplateV4, promptTemplateV5, promptTemplateV6, promptTemplateV7])
+
+  // API 설정을 로컬 스토리지에 저장
+  useEffect(() => {
+    localStorage.setItem('apiSettings', JSON.stringify(apiSettings))
+  }, [apiSettings])
+
+  // 프롬프트 버전을 로컬 스토리지에 저장
+  useEffect(() => {
+    localStorage.setItem('promptVersion', promptVersion)
+  }, [promptVersion])
+
+  // 편집한 프롬프트를 로컬 스토리지에 저장
+  useEffect(() => {
+    localStorage.setItem(`promptTemplate_${promptVersion}`, editablePromptTemplate)
+  }, [editablePromptTemplate, promptVersion])
 
   const handleGenerate = async () => {
     if (!apiSettings.apiKey) {
