@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Server, Code, FileJson, Edit2, Save, X, Copy, Check, CheckCircle2, AlertCircle, XCircle } from 'lucide-react'
 import type { ChildProfile } from '../App'
 import type { ValidationResult } from '../utils/scenarioValidator'
@@ -54,17 +54,18 @@ export default function ServerPanel({
     return top + middle + bottom
   }
 
-  const handleEditPrompt = () => {
-    setTempPromptTemplate(promptTemplate)
-
-    // v7의 경우 프롬프트를 3개 섹션으로 분리하여 저장
+  // v7 템플릿이 변경될 때마다 섹션 업데이트
+  useEffect(() => {
     if (promptVersion === 'v7') {
       const { top, middle, bottom } = parseV7Prompt(promptTemplate)
       setTopSection(top)
       setMiddleSection(middle)
       setBottomSection(bottom)
     }
+    setTempPromptTemplate(promptTemplate)
+  }, [promptTemplate, promptVersion])
 
+  const handleEditPrompt = () => {
     setIsEditingPrompt(true)
   }
 
