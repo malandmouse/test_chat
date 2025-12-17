@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Server, Code, FileJson, Edit2, Save, X, Copy, Check, CheckCircle2, AlertCircle, XCircle } from 'lucide-react'
+import { Server, Code, FileJson, Edit2, Save, X, Copy, Check } from 'lucide-react'
 import type { ChildProfile } from '../App'
 import type { ValidationResult } from '../utils/scenarioValidator'
 
@@ -21,10 +21,10 @@ export default function ServerPanel({
   isGenerating,
   promptTemplate,
   onPromptTemplateChange,
-  validationResult,
+  validationResult: _validationResult,
   promptVersion
 }: ServerPanelProps) {
-  const [activeTab, setActiveTab] = useState<'java' | 'prompt' | 'json' | 'validation'>('java')
+  const [activeTab, setActiveTab] = useState<'java' | 'prompt' | 'json'>('java')
   const [isEditingPrompt, setIsEditingPrompt] = useState(false)
   const [tempPromptTemplate, setTempPromptTemplate] = useState(promptTemplate)
   const [isCopied, setIsCopied] = useState(false)
@@ -201,19 +201,6 @@ public class Child {
             Raw JSON
           </div>
         </button>
-        <button
-          onClick={() => setActiveTab('validation')}
-          className={`px-4 py-2 font-medium text-sm transition-colors ${
-            activeTab === 'validation'
-              ? 'border-b-2 border-green-600 text-green-600'
-              : 'text-gray-600 hover:text-gray-800'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" />
-            Validation
-          </div>
-        </button>
       </div>
 
       {/* 탭 컨텐츠 */}
@@ -350,109 +337,6 @@ public class Child {
             ) : (
               <p className="text-yellow-400 text-sm">
                 ⚠️ 시나리오를 생성하면 여기에 LLM의 JSON 응답이 표시됩니다
-              </p>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'validation' && (
-          <div>
-            {validationResult ? (
-              <div className="space-y-4">
-                {/* Validation Score and Status */}
-                <div className="flex items-center justify-between mb-4 p-4 bg-gray-800 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {validationResult.isValid ? (
-                      <CheckCircle2 className="w-6 h-6 text-green-400" />
-                    ) : (
-                      <XCircle className="w-6 h-6 text-red-400" />
-                    )}
-                    <div>
-                      <h3 className="text-lg font-semibold text-white">
-                        {validationResult.isValid ? '검증 통과' : '검증 실패'}
-                      </h3>
-                      <p className="text-sm text-gray-400">
-                        점수: {validationResult.score}/100
-                      </p>
-                    </div>
-                  </div>
-                  <div className={`px-4 py-2 rounded-lg text-lg font-bold ${
-                    validationResult.score >= 80 ? 'bg-green-900 text-green-200' :
-                    validationResult.score >= 60 ? 'bg-yellow-900 text-yellow-200' :
-                    'bg-red-900 text-red-200'
-                  }`}>
-                    {validationResult.score}
-                  </div>
-                </div>
-
-                {/* Errors Section */}
-                {validationResult.errors.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-red-400 font-semibold flex items-center gap-2">
-                      <XCircle className="w-4 h-4" />
-                      오류 ({validationResult.errors.length})
-                    </h4>
-                    <div className="space-y-1">
-                      {validationResult.errors.map((error, idx) => (
-                        <div key={idx} className="bg-red-900/20 border border-red-700 rounded p-3">
-                          <p className="text-sm text-red-300">{error}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Warnings Section */}
-                {validationResult.warnings.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-yellow-400 font-semibold flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" />
-                      경고 ({validationResult.warnings.length})
-                    </h4>
-                    <div className="space-y-1">
-                      {validationResult.warnings.map((warning, idx) => (
-                        <div key={idx} className="bg-yellow-900/20 border border-yellow-700 rounded p-3">
-                          <p className="text-sm text-yellow-300">{warning}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Validation Details Checklist */}
-                <div className="space-y-2">
-                  <h4 className="text-blue-400 font-semibold flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4" />
-                    상세 검증 항목
-                  </h4>
-                  <div className="grid grid-cols-1 gap-2">
-                    {Object.entries(validationResult.details).map(([key, value]) => (
-                      <div key={key} className={`flex items-center gap-2 p-2 rounded ${
-                        value ? 'bg-green-900/20 border border-green-700' : 'bg-red-900/20 border border-red-700'
-                      }`}>
-                        {value ? (
-                          <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-                        )}
-                        <span className={`text-sm ${value ? 'text-green-300' : 'text-red-300'}`}>
-                          {key.replace(/_/g, ' ')}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : isGenerating ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="text-center">
-                  <div className="w-8 h-8 border-2 border-green-400 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                  <p className="text-gray-400 text-sm">검증 대기 중...</p>
-                </div>
-              </div>
-            ) : (
-              <p className="text-yellow-400 text-sm">
-                ⚠️ 시나리오를 생성하면 여기에 검증 결과가 표시됩니다
               </p>
             )}
           </div>
