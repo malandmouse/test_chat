@@ -17,29 +17,6 @@ export interface ValidationResult {
 }
 
 export class ScenarioValidator {
-  private EMOTION_KEYWORDS: Record<string, { explicit: string[], implicit: string[] }> = {
-    "기쁨": {
-      explicit: ['웃었어요', '기뻤어요', '신났어요', '즐거웠어요', '행복했어요', '뿌듯했어요'],
-      implicit: ['박수', '칭찬', '성공', '좋아요', '잘했', '함께', '만났어요'],
-    },
-    "슬픔": {
-      explicit: ['슬펐어요', '울었어요', '속상했어요', '우울했어요', '아쉬웠어요'],
-      implicit: ['없었어요', '잃어버렸어요', '못했어요', '안됐어요', '떨어졌어요', '찢어졌어요'],
-    },
-    "화남": {
-      explicit: ['화났어요', '짜증났어요', '억울했어요', '불만이었어요'],
-      implicit: ['불공평', '약속 어김', '새치기', '뺏었어요', '안 지켰어요'],
-    },
-    "두려움": {
-      explicit: ['무서웠어요', '떨렸어요', '두려웠어요', '불안했어요', '걱정했어요'],
-      implicit: ['큰 소리', '어둠', '혼자', '처음', '낯선'],
-    },
-    "놀람": {
-      explicit: ['놀랐어요', '깜짝', '놀라운', '예상 못한'],
-      implicit: ['갑자기', '몰랐는데'],
-    }
-  }
-
   private MIXED_EMOTION_FLAGS: Record<string, string[]> = {
     "기쁨": ['슬펐어요', '울었어요', '화났어요', '떨렸어요', '무서웠어요', '속상했어요'],
     "슬픔": ['웃었어요', '기뻤어요', '신났어요', '즐거웠어요'],
@@ -65,15 +42,6 @@ export class ScenarioValidator {
     /투명해졌/,
     /변신했/,
     /시간여행/,
-  ]
-
-  private AMBIGUOUS_ENDINGS = [
-    /되었어요\.$/,  // "발표 날이 되었어요"
-    /할\s+거예요\.$/,
-    /하려고\s+했어요\.$/,
-    /준비했어요\.$/,  // 결과 없이 준비만
-    /어떻게\s+될까요\?$/,
-    /궁금했어요\.$/,
   ]
 
   private LENGTH_CONSTRAINTS: Record<number, [number, number]> = {
@@ -135,14 +103,9 @@ export class ScenarioValidator {
 
     const script = data.scenario_script
 
-    // 3. 감정 명확성 검증
-    const emotionEnum = this.getEmotionEnum(targetEmotion)
-    const [emotionValid, emotionErrors, emotionWarnings] = this.validateEmotionClarity(script, emotionEnum)
-    details.emotion_clarity = emotionValid
-    errors.push(...emotionErrors)
-    warnings.push(...emotionWarnings)
 
     // 4. 혼합 감정 검증
+    const emotionEnum = this.getEmotionEnum(targetEmotion)
     const [mixedValid, mixedErrors] = this.checkMixedEmotions(script, emotionEnum)
     details.no_mixed_emotions = mixedValid
     errors.push(...mixedErrors)
@@ -156,11 +119,6 @@ export class ScenarioValidator {
     const [realityValid, realityWarnings] = this.validateReality(script, theme)
     details.reality_check = realityValid
     warnings.push(...realityWarnings)
-
-    // 7. 종료 명확성 검증
-    const [endingValid, endingErrors] = this.validateEnding(script, emotionEnum)
-    details.clear_ending = endingValid
-    errors.push(...endingErrors)
 
     // 8. 주인공 검증
     const [protagonistValid, protagonistErrors] = this.validateProtagonist(script, name)
@@ -234,27 +192,6 @@ export class ScenarioValidator {
     return [errors.length === 0, errors]
   }
 
-  private validateEmotionClarity(script: string, emotion: string): [boolean, string[], string[]] {
-    const errors: string[] = []
-    const warnings: string[] = []
-
-    const keywords = this.EMOTION_KEYWORDS[emotion]
-
-    // 명시적 키워드 체크
-    const hasExplicit = keywords.explicit.some(kw => script.includes(kw))
-
-    // 암시적 키워드 체크
-    const hasImplicit = keywords.implicit.some(kw => script.includes(kw))
-
-    if (!hasExplicit && !hasImplicit) {
-      errors.push(`감정(${emotion}) 표현이 명확하지 않습니다. 관련 키워드가 없습니다.`)
-    } else if (!hasExplicit) {
-      warnings.push(`명시적 감정 표현이 없습니다. 암시적 표현만 있습니다.`)
-    }
-
-    return [hasExplicit || hasImplicit, errors, warnings]
-  }
-
   private checkMixedEmotions(script: string, targetEmotion: string): [boolean, string[]] {
     const errors: string[] = []
 
@@ -300,16 +237,6 @@ export class ScenarioValidator {
     return [warnings.length === 0, warnings]
   }
 
-  private validateEnding(script: string, emotion: string): [boolean, string[]] {
-    const errors: string[] = []
-
-    // 모호한 종료 패턴 체크
-    for (const pattern of this.AMBIGUOUS_ENDINGS) {
-      if (pattern.test(script)) {
-        errors.push(`모호한 종료: 명확한 감정 결과 없이 종료됩니다`)
-        break
-      }
-    }
 
     // 마지막 1-2 문장에 감정 표현이 있는지 확인
     const sentences = script.split('.').filter(s => s.trim())
@@ -386,7 +313,7 @@ export class ScenarioValidator {
     }
 
     // 중요 오류 (-10점씩)
-    const importantChecks = ['emotion_clarity', 'no_mixed_emotions', 'clear_ending']
+    const importantChecks = ['no_mixed_emotions']
     for (const check of importantChecks) {
       if (!details[check]) {
         baseScore -= 10.0
