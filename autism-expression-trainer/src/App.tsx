@@ -48,7 +48,7 @@ function App() {
     theme: '공룡'
   })
 
-  const [promptVersion, setPromptVersion] = useState<'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6'>('v6')
+  const [promptVersion, setPromptVersion] = useState<'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7'>('v7')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedPrompt, setGeneratedPrompt] = useState('')
 
@@ -1032,7 +1032,47 @@ Before generating, verify:
 
 CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, markdown formatting, or preamble.`
 
-  const [editablePromptTemplate, setEditablePromptTemplate] = useState(promptTemplateV6)
+  // v7 프롬프트 템플릿 (자유 수정 가능하되 Input Variables와 Input Validation 섹션은 고정)
+  const promptTemplateV7 = `Role: Childhood development specialist and children's story writer specialized in ASD education
+
+Task: Generate an 'Emotional Learning Scenario' in JSON format for children with autism spectrum disorders
+
+[Input Variables]
+- Name: {name}
+- Age: {age} (3-12세)
+- Difficulty: {difficulty} (1-5)
+- Target Emotion: {emotion}
+- Preferred Theme: {theme} (child's special interest)
+
+[Input Validation]
+- If difficulty is out of range (1-5), default to level 3
+- If emotion or theme is missing, generate a neutral scenario
+- Age must be between 3-12; adjust language complexity accordingly
+- All themes are valid special interests - transform appropriately for ASD context
+
+[Core Design Principles]
+1. Child as Protagonist: {name} is ALWAYS the main character experiencing the emotion
+2. Special Interest Integration: {theme} appears as toys, books, activities, or topics in realistic contexts
+3. Concrete Grounding: All elements exist in real, observable daily life situations
+4. Predictable Structure: Clear cause-effect relationships with single timeline
+5. Emotional Clarity: ONE target emotion with unambiguous trigger and endpoint
+6. Safety-First: No violence, exclusion, deception, or stereotypes
+7. Positive Resolution: All conflicts resolve constructively
+
+[Output JSON Schema]
+{
+  "metadata": {
+    "title": "string (한글 10자 이내, 이모지 불포함)",
+    "difficulty": number (1-5, must match input),
+    "category": "string (학교|집|놀이터|유치원|공원 중 정확히 하나 선택)"
+  },
+  "scenario_script": "string (난이도별 권장 길이 준수, {name} 주인공, {theme} 자연스럽게 통합, 명확한 감정 표현으로 종료)",
+  "feedback_prompt": "string (의문문, 25자 이내, 감정이나 표정 질문)"
+}
+
+CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, markdown formatting, or preamble.`
+
+  const [editablePromptTemplate, setEditablePromptTemplate] = useState(promptTemplateV7)
 
   const [scenarioResponse, setScenarioResponse] = useState<ScenarioResponse | null>(null)
   const [rawJsonResponse, setRawJsonResponse] = useState('')
@@ -1051,10 +1091,12 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, markdo
       setEditablePromptTemplate(promptTemplateV4)
     } else if (promptVersion === 'v5') {
       setEditablePromptTemplate(promptTemplateV5)
-    } else {
+    } else if (promptVersion === 'v6') {
       setEditablePromptTemplate(promptTemplateV6)
+    } else {
+      setEditablePromptTemplate(promptTemplateV7)
     }
-  }, [promptVersion, promptTemplateV1, promptTemplateV2, promptTemplateV3, promptTemplateV4, promptTemplateV5, promptTemplateV6])
+  }, [promptVersion, promptTemplateV1, promptTemplateV2, promptTemplateV3, promptTemplateV4, promptTemplateV5, promptTemplateV6, promptTemplateV7])
 
   const handleGenerate = async () => {
     if (!apiSettings.apiKey) {
@@ -1210,6 +1252,7 @@ CRITICAL: Respond ONLY with valid JSON. No additional text, explanations, markdo
             promptTemplate={editablePromptTemplate}
             onPromptTemplateChange={setEditablePromptTemplate}
             validationResult={validationResult}
+            promptVersion={promptVersion}
           />
 
           <AppPreviewPanel

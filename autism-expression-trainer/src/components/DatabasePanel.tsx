@@ -8,8 +8,8 @@ interface DatabasePanelProps {
   onChildProfileChange: (profile: ChildProfile) => void
   onGenerate: () => void
   isGenerating: boolean
-  promptVersion: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6'
-  onPromptVersionChange: (version: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6') => void
+  promptVersion: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7'
+  onPromptVersionChange: (version: 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7') => void
 }
 
 export default function DatabasePanel({
@@ -135,7 +135,7 @@ export default function DatabasePanel({
             </label>
             <select
               value={promptVersion}
-              onChange={(e) => onPromptVersionChange(e.target.value as 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6')}
+              onChange={(e) => onPromptVersionChange(e.target.value as 'v1' | 'v2' | 'v3' | 'v4' | 'v5' | 'v6' | 'v7')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="v1">v1 (기본 프롬프트)</option>
@@ -144,6 +144,7 @@ export default function DatabasePanel({
               <option value="v4">v4 (ASD 전문 교육 프롬프트)</option>
               <option value="v5">v5 (Special Interest 통합)</option>
               <option value="v6">v6 (아동 주인공 + 감정 명확성 + AU)</option>
+              <option value="v7">v7 (자유 프리셋 - Input 섹션 고정)</option>
             </select>
             <p className="mt-1 text-xs text-gray-500">
               {promptVersion === 'v1'
@@ -156,7 +157,9 @@ export default function DatabasePanel({
                 ? '전체 감정에 대한 난이도별 매트릭스, 언어 복잡도 가이드라인 포함'
                 : promptVersion === 'v5'
                 ? 'Special Interest를 사회적 연결의 다리로 활용, 현실 기반 맥락화'
-                : '아동 주인공 중심, 단일 감정 원칙, AU 표정 캡처 최적화, 시간적 단순성'}
+                : promptVersion === 'v6'
+                ? '아동 주인공 중심, 단일 감정 원칙, AU 표정 캡처 최적화, 시간적 단순성'
+                : '자유 프롬프트 수정 가능 (Input Variables, Input Validation 섹션은 수정 불가)'}
             </p>
           </div>
         </div>
